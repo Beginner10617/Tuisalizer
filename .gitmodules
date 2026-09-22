@@ -1,0 +1,6 @@
+[submodule "tui"]
+	path = tui
+	url = https://github.com/Beginner10617/tui.git
+[submodule "raylib"]
+	path = raylib
+	url = https://github.com/raysan5/raylib.git
