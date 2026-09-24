@@ -2,8 +2,9 @@
 #include "logging.h"
 #include "raylib/src/raylib.h"
 int main() {
-  const int screenWidth = 800;
-  const int screenHeight = 450;
+  const float ratio = 2340.0 / 1080.0;
+  const int screenWidth = 400;
+  const int screenHeight = screenWidth * ratio;
 
   InitWindow(screenWidth, screenHeight,
              "raylib [audio] example - music stream");
