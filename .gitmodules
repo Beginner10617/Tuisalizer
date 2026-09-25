@@ -1,3 +1,6 @@
 [submodule "tui"]
 	path = tui
 	url = https://github.com/Beginner10617/tui.git
+[submodule "SDL"]
+	path = SDL
+	url = https://github.com/libsdl-org/SDL.git
