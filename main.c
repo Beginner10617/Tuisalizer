@@ -6,8 +6,10 @@
 #include <stdlib.h>
 
 int main(int argc, char **argv) {
+  LogInit("logs.log");
   if (argc < 2) {
     LogError("Usage: %s <audio-file>", argv[0]);
+    LogClose();
     return 1;
   }
 
@@ -19,12 +21,14 @@ int main(int argc, char **argv) {
 
   if (avformat_open_input(&fmt, filename, NULL, NULL) < 0) {
     LogError("Could not open file");
+    LogClose();
     return 1;
   }
 
   if (avformat_find_stream_info(fmt, NULL) < 0) {
     LogError("Could not find stream information");
     avformat_close_input(&fmt);
+    LogClose();
     return 1;
   }
 
@@ -43,6 +47,7 @@ int main(int argc, char **argv) {
   if (audio_stream == -1) {
     LogError("No audio stream found");
     avformat_close_input(&fmt);
+    LogClose();
     return 1;
   }
 
@@ -55,6 +60,7 @@ int main(int argc, char **argv) {
   if (!decoder) {
     LogError("Decoder not found");
     avformat_close_input(&fmt);
+    LogClose();
     return 1;
   }
 
@@ -63,6 +69,7 @@ int main(int argc, char **argv) {
   if (!codec) {
     LogError("Could not allocate codec context");
     avformat_close_input(&fmt);
+    LogClose();
     return 1;
   }
 
@@ -70,6 +77,7 @@ int main(int argc, char **argv) {
     LogError("Could not copy codec parameters");
     avcodec_free_context(&codec);
     avformat_close_input(&fmt);
+    LogClose();
     return 1;
   }
 
@@ -77,6 +85,7 @@ int main(int argc, char **argv) {
     LogError("Could not open decoder");
     avcodec_free_context(&codec);
     avformat_close_input(&fmt);
+    LogClose();
     return 1;
   }
 
@@ -91,6 +100,7 @@ int main(int argc, char **argv) {
 
   if (!packet || !frame) {
     LogError("Could not allocate packet/frame");
+    LogClose();
     return 1;
   }
 
@@ -156,6 +166,7 @@ cleanup:
 
   avcodec_free_context(&codec);
   avformat_close_input(&fmt);
+  LogClose();
 
   return 0;
 }
