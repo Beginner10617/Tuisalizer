@@ -59,3 +59,6 @@ build/*
 
 # log files
 *.log
+
+# todo
+todo
