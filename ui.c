@@ -4,7 +4,7 @@
 #define SCREEN_WIDTH 115
 #define SCREEN_HEIGHT 30
 #define FPS 30
-#define BUTTON_COUNT 6
+#define BUTTON_COUNT 8
 #define LOWER_PANEL_BUTTON_COUNT 6
 #define LOWER_PANEL_BUTTON_WIDTH (SCREEN_WIDTH - 2) / LOWER_PANEL_BUTTON_COUNT
 #define BUTTON_BGCLR_DEFAULT BLACK
@@ -63,9 +63,29 @@ button Buttons[BUTTON_COUNT] = {
      BUTTON_FGCLR_DEFAULT,
      BUTTON_FGCLR_HIGHLIGHT},
 
-    {{"[↑↓] Quit", ""},
+    {{"[Q] Quit", ""},
      SCREEN_HEIGHT - 2,
-     6 + LOWER_PANEL_BUTTON_WIDTH * 5,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 5,
+     0,
+     false,
+     BUTTON_BGCLR_DEFAULT,
+     BUTTON_BGCLR_HIGHLIGHT,
+     BUTTON_FGCLR_DEFAULT,
+     BUTTON_FGCLR_HIGHLIGHT},
+
+    {{"[+] Add Music/Playlist", ""},
+     1,
+     SCREEN_WIDTH - 25,
+     0,
+     false,
+     BUTTON_BGCLR_DEFAULT,
+     BUTTON_BGCLR_HIGHLIGHT,
+     BUTTON_FGCLR_DEFAULT,
+     BUTTON_FGCLR_HIGHLIGHT},
+
+    {{"[+] Add/remove Lyrics", ""},
+     SCREEN_HEIGHT - 7,
+     SCREEN_WIDTH - 25,
      0,
      false,
      BUTTON_BGCLR_DEFAULT,
