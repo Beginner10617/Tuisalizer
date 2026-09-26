@@ -1,5 +1,5 @@
 #!/bin/zsh
-gcc main.c logging.c \
+gcc main.c logging.c ui.c \
     -I/opt/homebrew/include/SDL2 \
     -I/opt/homebrew/opt/ffmpeg/include \
     -D_THREAD_SAFE \

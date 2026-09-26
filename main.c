@@ -1,36 +1,16 @@
 #include "logging.h"
-#define TUI_IMPLEMENTATION
 #include "tui/tui.h"
+#include "ui.h"
 #include <SDL.h>
 
 int main() {
-  TerminalWindow term = createTermWindow(40, 10);
-  unsigned int FPS = 60;
+  UI_state ui;
+  ui_init(&ui);
   FrameLimiter limiter;
-  frame_limiter_init(FPS, &limiter);
-  int x_pos = 0, y_pos = 0;
-  bool x_inc = true, y_inc = true;
-  double dt = 0;
+  frame_limiter_init(ui.fps, &limiter);
   while (1) {
-    fill_clr(BLUE, &term);
-    move_cursor(y_pos, x_pos, &term);
-    set_color_bg(RED, &term);
-    write_char(' ', &term);
-    display(&term);
-    dt += 1.0 / FPS;
-    if (dt > 1.0) {
-      dt = 0;
-      if (x_pos == 39 && x_inc)
-        x_inc = false;
-      if (x_pos == 0 && !x_inc)
-        x_inc = true;
-      if (y_pos == 9 && y_inc)
-        y_inc = false;
-      if (y_pos == 0 && !y_inc)
-        y_inc = true;
-      x_pos += x_inc ? 1 : -1;
-      y_pos += y_inc ? 1 : -1;
-    }
+    ui_update(&ui);
+    ui_render(&ui);
     frame_limiter_wait(&limiter);
   }
   return 0;
