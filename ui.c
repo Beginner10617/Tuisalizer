@@ -4,7 +4,7 @@
 #define SCREEN_WIDTH 115
 #define SCREEN_HEIGHT 30
 #define FPS 30
-#define BUTTON_COUNT 1
+#define BUTTON_COUNT 6
 #define LOWER_PANEL_BUTTON_COUNT 6
 #define LOWER_PANEL_BUTTON_WIDTH (SCREEN_WIDTH - 2) / LOWER_PANEL_BUTTON_COUNT
 #define BUTTON_BGCLR_DEFAULT BLACK
@@ -22,6 +22,57 @@ button Buttons[BUTTON_COUNT] = {
      BUTTON_BGCLR_HIGHLIGHT,
      BUTTON_FGCLR_DEFAULT,
      BUTTON_FGCLR_HIGHLIGHT},
+
+    {{"[←→] Seek", ""},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 1,
+     0,
+     false,
+     BUTTON_BGCLR_DEFAULT,
+     BUTTON_BGCLR_HIGHLIGHT,
+     BUTTON_FGCLR_DEFAULT,
+     BUTTON_FGCLR_HIGHLIGHT},
+
+    {{"[↑↓] Volume", ""},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 2,
+     0,
+     false,
+     BUTTON_BGCLR_DEFAULT,
+     BUTTON_BGCLR_HIGHLIGHT,
+     BUTTON_FGCLR_DEFAULT,
+     BUTTON_FGCLR_HIGHLIGHT},
+
+    {{"[V] Open Visualiser", "[V] Close Visualiser"},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 3,
+     0,
+     false,
+     BUTTON_BGCLR_DEFAULT,
+     BUTTON_BGCLR_HIGHLIGHT,
+     BUTTON_FGCLR_DEFAULT,
+     BUTTON_FGCLR_HIGHLIGHT},
+
+    {{"[L] Loop", "[L] Close Loop"},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 4,
+     0,
+     false,
+     BUTTON_BGCLR_DEFAULT,
+     BUTTON_BGCLR_HIGHLIGHT,
+     BUTTON_FGCLR_DEFAULT,
+     BUTTON_FGCLR_HIGHLIGHT},
+
+    {{"[↑↓] Quit", ""},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 5,
+     0,
+     false,
+     BUTTON_BGCLR_DEFAULT,
+     BUTTON_BGCLR_HIGHLIGHT,
+     BUTTON_FGCLR_DEFAULT,
+     BUTTON_FGCLR_HIGHLIGHT},
+
 };
 
 void ui_init(UI_state *ui) {
