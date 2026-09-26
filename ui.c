@@ -90,8 +90,8 @@ void ui_render(UI_state *ui) {
   Rect rect = {0, 0, SCREEN_HEIGHT - 1, SCREEN_WIDTH - 1};
   set_color_fg(WHITE, &ui->window);
   draw_rounded_borders(rect, &ui->window);
-  move_cursor(1, 1, &ui->window);
-  write_str("  TUISALIZER", &ui->window);
+  move_cursor(1, 3, &ui->window);
+  write_str("TUISALIZER", &ui->window);
 
   move_cursor(2, 0, &ui->window);
   write_char(u'├', &ui->window);
@@ -99,6 +99,18 @@ void ui_render(UI_state *ui) {
   write_char(u'┤', &ui->window);
   for (int i = 1; i < SCREEN_WIDTH - 1; i++) {
     move_cursor(2, i, &ui->window);
+    write_char(u'─', &ui->window);
+  }
+
+  move_cursor(SCREEN_HEIGHT - 5, 3, &ui->window);
+  write_str("QUEUE", &ui->window);
+
+  move_cursor(SCREEN_HEIGHT - 6, 0, &ui->window);
+  write_char(u'├', &ui->window);
+  move_cursor(SCREEN_HEIGHT - 6, SCREEN_WIDTH - 1, &ui->window);
+  write_char(u'┤', &ui->window);
+  for (int i = 1; i < SCREEN_WIDTH - 1; i++) {
+    move_cursor(SCREEN_HEIGHT - 6, i, &ui->window);
     write_char(u'─', &ui->window);
   }
 
