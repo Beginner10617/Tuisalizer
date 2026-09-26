@@ -43,7 +43,7 @@ button Buttons[BUTTON_COUNT] = {
      BUTTON_FGCLR_DEFAULT,
      BUTTON_FGCLR_HIGHLIGHT},
 
-    {{"[V] Open Visualiser", "[V] Close Visualiser"},
+    {{"[L] Loop", "[L] Close Loop"},
      SCREEN_HEIGHT - 2,
      1 + LOWER_PANEL_BUTTON_WIDTH * 3,
      0,
@@ -53,7 +53,7 @@ button Buttons[BUTTON_COUNT] = {
      BUTTON_FGCLR_DEFAULT,
      BUTTON_FGCLR_HIGHLIGHT},
 
-    {{"[L] Loop", "[L] Close Loop"},
+    {{"[S] Save Playlist", ""},
      SCREEN_HEIGHT - 2,
      1 + LOWER_PANEL_BUTTON_WIDTH * 4,
      0,
@@ -65,7 +65,7 @@ button Buttons[BUTTON_COUNT] = {
 
     {{"[↑↓] Quit", ""},
      SCREEN_HEIGHT - 2,
-     1 + LOWER_PANEL_BUTTON_WIDTH * 5,
+     6 + LOWER_PANEL_BUTTON_WIDTH * 5,
      0,
      false,
      BUTTON_BGCLR_DEFAULT,
