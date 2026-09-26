@@ -16,7 +16,16 @@ typedef struct {
   unsigned int fps;
 } UI_state;
 
+typedef struct {
+  const char *texts[2];
+  int row, col, mode;
+  bool highlighted;
+  uint8_t bgclr_default, bgclr_highlight, fgclr_default, fgclr_higlight;
+} button;
+
 void ui_init(UI_state *);
 void ui_update(UI_state *);
 void ui_render(UI_state *);
+
+void ui_render_button(button, UI_state *);
 #endif

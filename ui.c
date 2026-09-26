@@ -1,9 +1,28 @@
 #define TUI_IMPLEMENTATION
 #include "ui.h"
 #include "tui/tui.h"
-#define SCREEN_WIDTH 127
-#define SCREEN_HEIGHT 34
+#define SCREEN_WIDTH 115
+#define SCREEN_HEIGHT 30
 #define FPS 30
+#define BUTTON_COUNT 1
+#define LOWER_PANEL_BUTTON_COUNT 6
+#define LOWER_PANEL_BUTTON_WIDTH (SCREEN_WIDTH - 2) / LOWER_PANEL_BUTTON_COUNT
+#define BUTTON_BGCLR_DEFAULT BLACK
+#define BUTTON_FGCLR_DEFAULT WHITE
+#define BUTTON_BGCLR_HIGHLIGHT BLACK
+#define BUTTON_FGCLR_HIGHLIGHT WHITE
+
+button Buttons[BUTTON_COUNT] = {
+    {{"[SPACE] Play", "[SPACE] Pause"},
+     SCREEN_HEIGHT - 2,
+     1,
+     0,
+     false,
+     BUTTON_BGCLR_DEFAULT,
+     BUTTON_BGCLR_HIGHLIGHT,
+     BUTTON_FGCLR_DEFAULT,
+     BUTTON_FGCLR_HIGHLIGHT},
+};
 
 void ui_init(UI_state *ui) {
   ui->mode = MODE_PAUSED;
@@ -19,18 +38,10 @@ void ui_render(UI_state *ui) {
   // basic layout
   Rect rect = {0, 0, SCREEN_HEIGHT - 1, SCREEN_WIDTH - 1};
   set_color_fg(WHITE, &ui->window);
-  draw_borders(rect, &ui->window);
-  move_cursor(0, 0, &ui->window);
-  write_char(u'╭', &ui->window);
-  move_cursor(0, SCREEN_WIDTH - 1, &ui->window);
-  write_char(u'╮', &ui->window);
-  move_cursor(SCREEN_HEIGHT - 1, 0, &ui->window);
-  write_char(u'╰', &ui->window);
-  move_cursor(SCREEN_HEIGHT - 1, SCREEN_WIDTH - 1, &ui->window);
-  write_char(u'╯', &ui->window);
-
+  draw_rounded_borders(rect, &ui->window);
   move_cursor(1, 1, &ui->window);
   write_str("  TUISALIZER", &ui->window);
+
   move_cursor(2, 0, &ui->window);
   write_char(u'├', &ui->window);
   move_cursor(2, SCREEN_WIDTH - 1, &ui->window);
@@ -40,6 +51,30 @@ void ui_render(UI_state *ui) {
     write_char(u'─', &ui->window);
   }
 
+  move_cursor(SCREEN_HEIGHT - 3, 0, &ui->window);
+  write_char(u'├', &ui->window);
+  move_cursor(SCREEN_HEIGHT - 3, SCREEN_WIDTH - 1, &ui->window);
+  write_char(u'┤', &ui->window);
+  for (int i = 1; i < SCREEN_WIDTH - 1; i++) {
+    move_cursor(SCREEN_HEIGHT - 3, i, &ui->window);
+    write_char(u'─', &ui->window);
+  }
+
+  for (int i = 0; i < BUTTON_COUNT; i++)
+    ui_render_button(Buttons[i], ui);
+
   // render call
   display(&ui->window);
+}
+
+void ui_render_button(button b, UI_state *ui) {
+  move_cursor(b.row, b.col, &ui->window);
+  if (b.highlighted) {
+    set_color_bg(b.bgclr_highlight, &ui->window);
+    set_color_fg(b.fgclr_higlight, &ui->window);
+  } else {
+    set_color_bg(b.bgclr_default, &ui->window);
+    set_color_fg(b.fgclr_default, &ui->window);
+  }
+  write_str(b.texts[b.mode], &ui->window);
 }
