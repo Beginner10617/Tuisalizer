@@ -14,6 +14,8 @@ typedef struct {
   // tui state
   TerminalWindow window;
   unsigned int fps;
+  InputState inputs;
+  bool running;
 } UI_state;
 
 typedef struct {
@@ -26,6 +28,6 @@ typedef struct {
 void ui_init(UI_state *);
 void ui_update(UI_state *);
 void ui_render(UI_state *);
-
+void ui_close(UI_state *);
 void ui_render_button(button, UI_state *);
 #endif

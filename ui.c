@@ -89,9 +89,23 @@ void ui_init(UI_state *ui) {
   ui->mode = MODE_PAUSED;
   ui->window = createTermWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
   ui->fps = FPS;
+  ui->running = true;
+  enable_raw_mode();
 }
 
-void ui_update(UI_state *ui) {}
+void ui_update(UI_state *ui) {
+  tui_poll_events(&ui->inputs);
+  if (ui->inputs.pressed[TUIK_CHAR]) {
+    switch (ui->inputs.c_data) {
+    case 'q':
+    case 'Q':
+      ui->running = false;
+      break;
+    default:
+      break;
+    }
+  }
+}
 
 void ui_render(UI_state *ui) {
   fill_clr(BLACK, &ui->window);
@@ -139,6 +153,8 @@ void ui_render(UI_state *ui) {
   // render call
   display(&ui->window);
 }
+
+void ui_close(UI_state *ui) { show_cursor(); }
 
 void ui_render_button(button b, UI_state *ui) {
   move_cursor(b.row, b.col, &ui->window);

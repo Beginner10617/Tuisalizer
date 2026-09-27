@@ -8,11 +8,12 @@ int main() {
   ui_init(&ui);
   FrameLimiter limiter;
   frame_limiter_init(ui.fps, &limiter);
-  while (1) {
+  while (ui.running) {
     ui_update(&ui);
     ui_render(&ui);
     frame_limiter_wait(&limiter);
   }
+  ui_close(&ui);
   return 0;
 }
 
