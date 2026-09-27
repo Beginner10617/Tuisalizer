@@ -1,15 +1,14 @@
+#include <stdint.h>
 #define TUI_IMPLEMENTATION
-#include "ui.h"
 #include "logging.h"
 #include "tui/tui.h"
+#include "ui.h"
 #define SCREEN_WIDTH 115
 #define SCREEN_HEIGHT 30
 #define FPS 30
 #define BUTTON_COUNT 8
 #define LOWER_PANEL_BUTTON_COUNT 7
 #define LOWER_PANEL_BUTTON_WIDTH (SCREEN_WIDTH - 2) / LOWER_PANEL_BUTTON_COUNT
-#define BUTTON_BGCLR BLACK
-#define BUTTON_FGCLR WHITE
 
 #define BUTTON_INDEX_PAUSE_PLAY 0
 #define BUTTON_INDEX_SEEK 1
@@ -25,76 +24,64 @@ button Buttons[BUTTON_COUNT] = {{{"[SPACE] Play", "[SPACE] Pause"},
                                  1,
                                  0,
                                  false,
-                                 BUTTON_BGCLR,
-                                 BUTTON_FGCLR},
+                                 LIME,
+                                 BLACK},
 
-                                {
-                                    {"[←→] Seek", ""},
-                                    SCREEN_HEIGHT - 2,
-                                    1 + LOWER_PANEL_BUTTON_WIDTH * 1,
-                                    0,
-                                    false,
-                                    BUTTON_BGCLR,
-                                    BUTTON_FGCLR,
-                                },
+                                {{"[←→] Seek", ""},
+                                 SCREEN_HEIGHT - 2,
+                                 1 + LOWER_PANEL_BUTTON_WIDTH * 1,
+                                 0,
+                                 false,
+                                 SILVER,
+                                 BLACK},
 
-                                {
-                                    {"[↑↓] Volume", ""},
-                                    SCREEN_HEIGHT - 2,
-                                    1 + LOWER_PANEL_BUTTON_WIDTH * 2,
-                                    0,
-                                    false,
-                                    BUTTON_BGCLR,
-                                    BUTTON_FGCLR,
-                                },
+                                {{"[↑↓] Volume", ""},
+                                 SCREEN_HEIGHT - 2,
+                                 1 + LOWER_PANEL_BUTTON_WIDTH * 2,
+                                 0,
+                                 false,
+                                 TEAL,
+                                 BLACK},
 
-                                {
-                                    {"[L] Loop", "[L] Close Loop"},
-                                    SCREEN_HEIGHT - 2,
-                                    1 + LOWER_PANEL_BUTTON_WIDTH * 3,
-                                    0,
-                                    false,
-                                    BUTTON_BGCLR,
-                                    BUTTON_FGCLR,
-                                },
+                                {{"[L] Loop", "[L] UnLoop"},
+                                 SCREEN_HEIGHT - 2,
+                                 1 + LOWER_PANEL_BUTTON_WIDTH * 3,
+                                 0,
+                                 false,
+                                 PURPLE,
+                                 BLACK},
 
-                                {
-                                    {"[A] Add", "[-] Add"},
-                                    SCREEN_HEIGHT - 2,
-                                    1 + LOWER_PANEL_BUTTON_WIDTH * 4,
-                                    0,
-                                    false,
-                                    BUTTON_BGCLR,
-                                    BUTTON_FGCLR,
-                                },
+                                {{"[A] Add", "[-] Add"},
+                                 SCREEN_HEIGHT - 2,
+                                 1 + LOWER_PANEL_BUTTON_WIDTH * 4,
+                                 0,
+                                 false,
+                                 AQUA,
+                                 BLACK},
 
-                                {
-                                    {"[S] Save", "[-] Save"},
-                                    SCREEN_HEIGHT - 2,
-                                    1 + LOWER_PANEL_BUTTON_WIDTH * 5,
-                                    0,
-                                    false,
-                                    BUTTON_BGCLR,
-                                    BUTTON_FGCLR,
-                                },
+                                {{"[S] Save", "[-] Save"},
+                                 SCREEN_HEIGHT - 2,
+                                 1 + LOWER_PANEL_BUTTON_WIDTH * 5,
+                                 0,
+                                 false,
+                                 BLUE,
+                                 BLACK},
 
                                 {{"[Q] Quit", "[-] Quit"},
                                  SCREEN_HEIGHT - 2,
                                  1 + LOWER_PANEL_BUTTON_WIDTH * 6,
                                  0,
                                  false,
-                                 BUTTON_BGCLR,
-                                 BUTTON_FGCLR},
+                                 RED,
+                                 BLACK},
 
-                                {
-                                    {"[I] Queue", "[-] Queue"},
-                                    SCREEN_HEIGHT - 5,
-                                    3,
-                                    0,
-                                    false,
-                                    BUTTON_BGCLR,
-                                    BUTTON_FGCLR,
-                                }};
+                                {{"[I] Queue", "[-] Queue"},
+                                 SCREEN_HEIGHT - 5,
+                                 3,
+                                 0,
+                                 false,
+                                 YELLOW,
+                                 BLACK}};
 
 void ui_init(UI_state *ui) {
   LogInit("logs.log");
@@ -136,7 +123,6 @@ void ui_update(UI_state *ui) {
       ui->focus_button_id = BUTTON_INDEX_QUIT;
       Buttons[BUTTON_INDEX_QUIT].mode = 1;
       LogInfo("switching to focus mode quit");
-      ui->running = false; // to be removed afterwards
       break;
     default:
       break;
@@ -148,6 +134,8 @@ void ui_update(UI_state *ui) {
     Buttons[ui->focus_button_id].mode = 0;
     ui->focus_button_id = -1;
   }
+  if (ui->focus == FOCUS_QUIT && ui->inputs.pressed[TUIK_ENTER])
+    ui->running = false;
 }
 
 void ui_render(UI_state *ui) {
@@ -159,6 +147,34 @@ void ui_render(UI_state *ui) {
   draw_rounded_borders(rect, &ui->window);
   move_cursor(1, 3, &ui->window);
   write_str("TUISALIZER", &ui->window);
+
+  // focus mode display
+  char *mode_str = "NORMAL";
+  uint8_t bg_clr = GREEN;
+  switch (ui->focus) {
+  case FOCUS_QUIT:
+    mode_str = "QUIT";
+    bg_clr = RED;
+    break;
+  case FOCUS_QUEUE:
+    mode_str = "QUEUE";
+    bg_clr = YELLOW;
+    break;
+  case FOCUS_ADD:
+    mode_str = "ADD";
+    bg_clr = AQUA;
+    break;
+  case FOCUS_SAVE:
+    mode_str = "SAVE";
+    bg_clr = BLUE;
+    break;
+  }
+  move_cursor(1, SCREEN_WIDTH - strlen(mode_str) - 3, &ui->window);
+  set_color_bg(bg_clr, &ui->window);
+  set_color_fg(BLACK, &ui->window);
+  write_str(mode_str, &ui->window);
+  set_color_bg(BLACK, &ui->window);
+  set_color_fg(WHITE, &ui->window);
 
   move_cursor(2, 0, &ui->window);
   write_char(u'├', &ui->window);
@@ -190,6 +206,23 @@ void ui_render(UI_state *ui) {
   for (int i = 1; i < SCREEN_WIDTH - 1; i++) {
     move_cursor(SCREEN_HEIGHT - 3, i, &ui->window);
     write_char(u'─', &ui->window);
+  }
+
+  // focus window rendering
+  if (ui->focus == FOCUS_QUIT) {
+    int s_row = SCREEN_HEIGHT / 2 - 2, s_col = SCREEN_WIDTH / 2 - 18;
+    Rect tmp = {s_row, s_col, s_row + 4, s_col + 35};
+    draw_rounded_borders(tmp, &ui->window);
+    move_cursor(s_row + 1, s_col + 3, &ui->window);
+    write_str("Are you sure you want to quit?", &ui->window);
+    move_cursor(s_row + 3, s_col + 3, &ui->window);
+    write_str("YES [ENTER]        NO [ESCAPE]", &ui->window);
+  } else if (ui->focus == FOCUS_ADD) {
+
+  } else if (ui->focus == FOCUS_SAVE) {
+
+  } else if (ui->focus == FOCUS_QUEUE) {
+    // no separate rect per-se, but a cursor to navigate
   }
 
   // rendering buttons

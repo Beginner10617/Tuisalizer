@@ -36,7 +36,7 @@ Normal mode- All keypresses shown on the layout will only work in this mode, to 
 │             Available inputs : Left-right arrow keys, ENTER
 ├────[A]──── Add mode (opens a file-system window to choose music/playlist/lyrics file,
 │            inferred from file name)
-│             Available inputs : Up-down arrow keys, ENTER
+│             Available inputs : Up-down arrow keys, text-input, ENTER
 ├────[S]──── Save mode (opens a file-system window to choose location, to store the current
 │            chosen queue as a playlist)
 │             Available inputs : Up-down arrow keys, text-input (A-z, 0-9), Enter
@@ -50,11 +50,13 @@ Add mode:
 │ ../music/youtube   │
 ├────────────────────┤
 │ ..                 │
-│ opeth              │
+│ equiiiii.mp3       │
 │ equilibrium.mp3    │
 │ equilibrium.srt    │
-│ 7 words.mp3        │
-│ engine no 9.mp3    │
+│                    │
+│                    │
+├────────────────────┤
+│ equi               │
 ╰────────────────────╯
 
 Save mode:
