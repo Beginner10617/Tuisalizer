@@ -17,8 +17,8 @@
 │                                      [SRT LYRICS IF ANY]                                     │
 │  [Music name]                           [Artist name]               volume  ━━━━●━━━━━━ 30%  │
 ├──────────────────────────────────────────────────────────────────────────────────────────────┤
-│  QUEUE                                                                                       │
-│  ▸ After Dark        Resonance        Nightcall        Midnight City        Intro            │
+│  [I] QUEUE                                                                                   │
+│  ▸ [Next music]      [Music-2]        [Music-3]        [Music-4]            [Music-5]        │
 ├──────────────────────────────────────────────────────────────────────────────────────────────┤
 │  [SPACE] Pause    [←→] Seek    [↑↓] Volume   [L] Loop   [A] Add  [S] Save    [Q] Quit        │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
@@ -26,3 +26,55 @@ The cursor :
   Can't move to the lower panel
   Can scroll through the QUEUE (to right) select track
   Can click on [+] marked buttons
+
+We'll have modes of focus, the key presses will change the focus
+Normal mode- All keypresses shown on the layout will only work in this mode, to switch
+│             back to this mode, press ESC
+│             Available inputs : I, SPACE, Arror keys (all 4), L, A, S, Q
+├────[I]──── A cursor appears on the queue window, which can be scrolled (left-right),
+│            and used to chose another music in the queue
+│             Available inputs : Left-right arrow keys, ENTER
+├────[A]──── Add mode (opens a file-system window to choose music/playlist/lyrics file,
+│            inferred from file name)
+│             Available inputs : Up-down arrow keys, ENTER
+├────[S]──── Save mode (opens a file-system window to choose location, to store the current
+│            chosen queue as a playlist)
+│             Available inputs : Up-down arrow keys, text-input (A-z, 0-9), Enter
+╰────[Q]──── A window appear confirming to quit or not
+              Available inputs : Left-right arrow keys, ENTER
+
+Windows :
+Add mode:
+╭────────────────────╮
+│ Add                │
+│ ../music/youtube   │
+├────────────────────┤
+│ ..                 │
+│ opeth              │
+│ equilibrium.mp3    │
+│ equilibrium.srt    │
+│ 7 words.mp3        │
+│ engine no 9.mp3    │
+╰────────────────────╯
+
+Save mode:
+╭────────────────────╮
+│ Save               │
+│ ../music/youtube   │
+├────────────────────┤
+│ ..                 │
+│ opeth              │
+│ equilibrium.mp3    │
+│ equilibrium.srt    │
+│ 7 words.mp3        │
+│ engine no 9.mp3    │
+├────────────────────┤
+│ new_mix.plist      │
+╰────────────────────╯
+
+Quit mode:
+╭──────────────────────────────────╮
+│  Are you sure you want to quit?  │
+│                                  │
+│    [YES]                 [NO]    │
+╰──────────────────────────────────╯

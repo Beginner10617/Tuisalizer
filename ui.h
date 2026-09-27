@@ -1,15 +1,11 @@
 #ifndef UI
 #define UI
 #include "tui/tui.h"
-enum {
-  MODE_PAUSED = 1 << 0,
-  MODE_LOOP = 1 << 1,
-  MODE_VISUALIZE = 1 << 2,
-};
+enum { FOCUS_NORMAL, FOCUS_QUEUE, FOCUS_ADD, FOCUS_SAVE, FOCUS_QUIT };
 typedef struct {
   const char *track_name, *album_name, *artist_name;
   int played_seconds, duration_seconds;
-  int mode;
+  int focus, focus_button_id;
 
   // tui state
   TerminalWindow window;
@@ -22,7 +18,7 @@ typedef struct {
   const char *texts[2];
   int row, col, mode;
   bool highlighted;
-  uint8_t bgclr_default, bgclr_highlight, fgclr_default, fgclr_higlight;
+  uint8_t bgclr, fgclr;
 } button;
 
 void ui_init(UI_state *);
