@@ -1,6 +1,6 @@
 #ifndef UI
 #define UI
-#include "tui/tui.h"
+#include "../tui/tui.h"
 enum { FOCUS_NORMAL, FOCUS_QUEUE, FOCUS_ADD, FOCUS_SAVE, FOCUS_QUIT };
 typedef struct {
   const char *track_name, *album_name, *artist_name;

@@ -1,4 +1,4 @@
-#include "tui/tui.h"
+#include "../tui/tui.h"
 #include "ui.h"
 #include <SDL.h>
 

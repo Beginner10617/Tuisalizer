@@ -23,4 +23,9 @@
 │  SDL Audio   │   │
 │ + TUI render │───┘
 └──────────────┘
-*using SDL time updates
+* using SDL time for dft
+* using a queue:
+  The decoder will add pcm bugger in the queue with the time-stamp
+  The fft gen will pop form the queue until the top intersects with the current time
+  current time will be given by sdl, giving the current time of audio playing
+  in the end of the loop, the pcm buffer will be queue/handed-over to sdl to play

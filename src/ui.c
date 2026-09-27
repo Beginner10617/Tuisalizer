@@ -1,7 +1,7 @@
 #include <stdint.h>
 #define TUI_IMPLEMENTATION
+#include "../tui/tui.h"
 #include "logging.h"
-#include "tui/tui.h"
 #include "ui.h"
 #define SCREEN_WIDTH 115
 #define SCREEN_HEIGHT 30
