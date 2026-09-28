@@ -21,6 +21,7 @@ typedef struct {
   char search_buf[256];
   size_t search_buf_index;
   size_t cursor_posn;
+  fs_entry curr_selected_entry;
 } UI_state;
 
 typedef struct {

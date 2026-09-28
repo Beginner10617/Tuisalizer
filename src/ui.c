@@ -164,6 +164,8 @@ void ui_update(UI_state *ui) {
     else if (ui->inputs.pressed[TUIK_DOWN] &&
              ui->cursor_posn + 1 < ui->file_sys.count)
       ui->cursor_posn++;
+    if (ui->inputs.pressed[TUIK_ENTER])
+      LogInfo("current selected file : %s", ui->curr_selected_entry.name);
   }
 }
 
@@ -260,30 +262,22 @@ void ui_render(UI_state *ui) {
     write_char(u'┤', &ui->window);
 
     int posn = 0, start, end;
-    start = (ui->cursor_posn > 12 ? ui->cursor_posn - 12 : 0);
-    end = (ui->cursor_posn > 12 ? ui->cursor_posn : 12);
-    LogInfo("Before loop ui->file_sys.count = %d", ui->file_sys.count);
+    start = (ui->cursor_posn >= 12 ? ui->cursor_posn - 11 : 0);
+    end = (ui->cursor_posn >= 12 ? ui->cursor_posn + 1 : 12);
     for (int i = 0; i < ui->file_sys.count && posn < end; i++) {
-      LogInfo("Inside loop file-name = %s prefix = %s",
-              ui->file_sys.entries[i].name, ui->search_buf);
       if (!starts_with(ui->file_sys.entries[i].name, ui->search_buf) &&
           strncmp("..", ui->file_sys.entries[i].name, 2))
         continue;
-      LogInfo("Inside loop posn = %d ui->cursor_posn = %d", posn,
-              ui->cursor_posn);
       if (posn < start) {
         posn++;
         continue;
       }
       char *tmp_c = file_extension(ui->file_sys.entries[i].name);
-      LogInfo("Inside loop file extension = %s", tmp_c);
-      LogInfo("posn = %d ui->cursor_posn = %d", posn, ui->cursor_posn);
       if (ui->cursor_posn == posn) {
+        ui->curr_selected_entry = ui->file_sys.entries[i];
         set_color_bg(GREY, &ui->window);
-        LogInfo("Background color set grey");
       } else {
         set_color_bg(BLACK, &ui->window);
-        LogInfo("Background color set black");
       }
       if ((strncmp(tmp_c, ".mp3", 3) == 0) ||
           (strncmp(tmp_c, ".srt", 3) == 0) ||
@@ -297,8 +291,6 @@ void ui_render(UI_state *ui) {
           set_color_fg(GREY, &ui->window);
       }
       int row = s_row + 4 + posn - start;
-      LogInfo("Writing at row = %d col = %d str = %s", row, s_col + 1,
-              ui->file_sys.entries[i].name);
       move_cursor(row, s_col + 1, &ui->window);
       write_str_prefix(ui->file_sys.entries[i].name, 32, &ui->window);
 
