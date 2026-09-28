@@ -28,9 +28,10 @@ int fs_read_dir(const char *path, fs_dir *dir) {
   dir->count = 0;
 
   if (dir->path)
-    realpath(path, dir->path);
+    assert(realpath(path, dir->path));
   else
     dir->path = realpath(path, dir->path);
+  assert(dir->path);
 
   DIR *dir_ = opendir(".");
   struct dirent *x;
@@ -38,6 +39,8 @@ int fs_read_dir(const char *path, fs_dir *dir) {
     x = readdir(dir_);
     if (!x)
       break;
+    if (strlen(x->d_name) == 1 && strncmp(".", x->d_name, 1) == 0)
+      continue;
     fs_entry tmp = {x->d_name, x->d_type};
     fs_append(dir, tmp);
   }
@@ -58,5 +61,20 @@ char *fs_join_path(const char *dir, const char *name) {
   out[strlen(dir)] = '/';
   for (int i = 0; i < strlen(name); i++)
     out[i + strlen(dir) + 1] = name[i];
+  return out;
+}
+
+bool starts_with(const char *str, const char *prefix) {
+  return strncmp(str, prefix, strlen(prefix)) == 0;
+}
+
+char *file_extension(const char *file_name) {
+  int i = strlen(file_name) - 1;
+  int j;
+  for (j = i; j >= 0 && file_name[j] != '.'; j--)
+    ;
+  char *out = malloc(sizeof(char) * (i - j + 2));
+  for (int k = 0; k < i - j + 2; k++)
+    out[k] = file_name[j + k];
   return out;
 }

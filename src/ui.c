@@ -1,5 +1,6 @@
 #include "filesys.h"
 #include <stdint.h>
+#include <string.h>
 #define TUI_IMPLEMENTATION
 #include "../tui/tui.h"
 #include "logging.h"
@@ -93,6 +94,7 @@ void ui_init(UI_state *ui) {
   ui->search_buf[0] = 0;
   ui->search_buf_index = 0;
   ui->file_sys = fs_create();
+  ui->cursor_posn = 0;
   fs_read_dir(".", &ui->file_sys);
   enable_raw_mode();
 }
@@ -144,16 +146,24 @@ void ui_update(UI_state *ui) {
   if (ui->focus == FOCUS_ADD) {
     if (ui->inputs.pressed[TUIK_CHAR] &&
         ui->search_buf_index < sizeof(ui->search_buf) - 1) {
+      ui->cursor_posn = 0;
       ui->search_buf[ui->search_buf_index++] = ui->inputs.c_data;
       ui->search_buf[ui->search_buf_index] = 0;
     } else if (ui->inputs.pressed[TUIK_SPACE] &&
                ui->search_buf_index < sizeof(ui->search_buf) - 1) {
+      ui->cursor_posn = 0;
       ui->search_buf[ui->search_buf_index++] = ' ';
     } else if (ui->inputs.pressed[TUIK_BACK] && ui->search_buf_index >= 0) {
       if (ui->search_buf_index > 0)
-        ui->search_buf_index--;
+        ui->cursor_posn = 0;
+      ui->search_buf_index--;
       ui->search_buf[ui->search_buf_index] = 0;
     }
+    if (ui->inputs.pressed[TUIK_UP] && ui->cursor_posn > 0)
+      ui->cursor_posn--;
+    else if (ui->inputs.pressed[TUIK_DOWN] &&
+             ui->cursor_posn + 1 < ui->file_sys.count)
+      ui->cursor_posn++;
   }
 }
 
@@ -249,10 +259,57 @@ void ui_render(UI_state *ui) {
     move_cursor(s_row + 3, s_col + 35, &ui->window);
     write_char(u'┤', &ui->window);
 
+    int posn = 0, start, end;
+    start = (ui->cursor_posn > 12 ? ui->cursor_posn - 12 : 0);
+    end = (ui->cursor_posn > 12 ? ui->cursor_posn : 12);
+    LogInfo("Before loop ui->file_sys.count = %d", ui->file_sys.count);
+    for (int i = 0; i < ui->file_sys.count && posn < end; i++) {
+      LogInfo("Inside loop file-name = %s prefix = %s",
+              ui->file_sys.entries[i].name, ui->search_buf);
+      if (!starts_with(ui->file_sys.entries[i].name, ui->search_buf) &&
+          strncmp("..", ui->file_sys.entries[i].name, 2))
+        continue;
+      LogInfo("Inside loop posn = %d ui->cursor_posn = %d", posn,
+              ui->cursor_posn);
+      if (posn < start) {
+        posn++;
+        continue;
+      }
+      char *tmp_c = file_extension(ui->file_sys.entries[i].name);
+      LogInfo("Inside loop file extension = %s", tmp_c);
+      LogInfo("posn = %d ui->cursor_posn = %d", posn, ui->cursor_posn);
+      if (ui->cursor_posn == posn) {
+        set_color_bg(GREY, &ui->window);
+        LogInfo("Background color set grey");
+      } else {
+        set_color_bg(BLACK, &ui->window);
+        LogInfo("Background color set black");
+      }
+      if ((strncmp(tmp_c, ".mp3", 3) == 0) ||
+          (strncmp(tmp_c, ".srt", 3) == 0) ||
+          (strncmp(tmp_c, ".plist", 3) == 0) ||
+          (ui->file_sys.entries[i].kind == KIND_DIR)) {
+        set_color_fg(WHITE, &ui->window);
+      } else {
+        if (ui->cursor_posn == posn)
+          set_color_fg(BLACK, &ui->window);
+        else
+          set_color_fg(GREY, &ui->window);
+      }
+      int row = s_row + 4 + posn - start;
+      LogInfo("Writing at row = %d col = %d str = %s", row, s_col + 1,
+              ui->file_sys.entries[i].name);
+      move_cursor(row, s_col + 1, &ui->window);
+      write_str_prefix(ui->file_sys.entries[i].name, 32, &ui->window);
+
+      free(tmp_c);
+      posn++;
+    }
+    set_color_bg(BLACK, &ui->window);
+    set_color_fg(WHITE, &ui->window);
+
     move_cursor(s_row + 17, s_col + 2, &ui->window);
-    write_str(ui->search_buf +
-                  (ui->search_buf_index < 31 ? 0 : ui->search_buf_index - 30),
-              &ui->window);
+    write_str_suffix(ui->search_buf, 31, &ui->window);
     move_cursor(s_row + 17,
                 s_col + 2 +
                     (ui->search_buf_index < 31 ? ui->search_buf_index : 30),

@@ -1,6 +1,7 @@
 #ifndef FILE_SYS
 #define FILE_SYS
 #include <dirent.h>
+#include <stdbool.h>
 #include <stdlib.h>
 enum {
   KIND_DIR = DT_DIR,
@@ -21,5 +22,7 @@ fs_dir fs_create();
 void fs_append(fs_dir *, fs_entry);
 int fs_read_dir(const char *path, fs_dir *dir);
 void fs_free_dir(fs_dir *dir);
-char *fs_join_path(const char *dir, const char *name);
+char *fs_join_path(const char *dir, const char *name); // to be freed
+bool starts_with(const char *str, const char *prefix);
+char *file_extension(const char *file_name); // to be freed
 #endif

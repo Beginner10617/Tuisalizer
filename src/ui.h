@@ -20,6 +20,7 @@ typedef struct {
   // search buffers
   char search_buf[256];
   size_t search_buf_index;
+  size_t cursor_posn;
 } UI_state;
 
 typedef struct {
