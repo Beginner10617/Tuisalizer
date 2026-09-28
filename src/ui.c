@@ -1,3 +1,4 @@
+#include "filesys.h"
 #include <stdint.h>
 #define TUI_IMPLEMENTATION
 #include "../tui/tui.h"
@@ -89,6 +90,10 @@ void ui_init(UI_state *ui) {
   ui->window = createTermWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
   ui->fps = FPS;
   ui->running = true;
+  ui->search_buf[0] = 0;
+  ui->search_buf_index = 0;
+  ui->file_sys = fs_create();
+  fs_read_dir(".", &ui->file_sys);
   enable_raw_mode();
 }
 
@@ -136,6 +141,20 @@ void ui_update(UI_state *ui) {
   }
   if (ui->focus == FOCUS_QUIT && ui->inputs.pressed[TUIK_ENTER])
     ui->running = false;
+  if (ui->focus == FOCUS_ADD) {
+    if (ui->inputs.pressed[TUIK_CHAR] &&
+        ui->search_buf_index < sizeof(ui->search_buf) - 1) {
+      ui->search_buf[ui->search_buf_index++] = ui->inputs.c_data;
+      ui->search_buf[ui->search_buf_index] = 0;
+    } else if (ui->inputs.pressed[TUIK_SPACE] &&
+               ui->search_buf_index < sizeof(ui->search_buf) - 1) {
+      ui->search_buf[ui->search_buf_index++] = ' ';
+    } else if (ui->inputs.pressed[TUIK_BACK] && ui->search_buf_index >= 0) {
+      if (ui->search_buf_index > 0)
+        ui->search_buf_index--;
+      ui->search_buf[ui->search_buf_index] = 0;
+    }
+  }
 }
 
 void ui_render(UI_state *ui) {
@@ -218,6 +237,35 @@ void ui_render(UI_state *ui) {
     move_cursor(s_row + 3, s_col + 3, &ui->window);
     write_str("YES [ENTER]        NO [ESCAPE]", &ui->window);
   } else if (ui->focus == FOCUS_ADD) {
+    int s_row = SCREEN_HEIGHT / 2 - 10, s_col = SCREEN_WIDTH / 2 - 18;
+    Rect tmp = {s_row, s_col, s_row + 18, s_col + 35};
+    draw_rounded_borders(tmp, &ui->window);
+
+    move_cursor(s_row + 1, s_col + 2, &ui->window);
+    write_str("ADD", &ui->window);
+
+    move_cursor(s_row + 3, s_col, &ui->window);
+    write_char(u'├', &ui->window);
+    move_cursor(s_row + 3, s_col + 35, &ui->window);
+    write_char(u'┤', &ui->window);
+
+    move_cursor(s_row + 17, s_col + 2, &ui->window);
+    write_str(ui->search_buf, &ui->window);
+    move_cursor(s_row + 17, s_col + 2 + ui->search_buf_index, &ui->window);
+    set_color_bg(GREY, &ui->window);
+    write_char(' ', &ui->window);
+    set_color_bg(BLACK, &ui->window);
+
+    move_cursor(s_row + 16, s_col, &ui->window);
+    write_char(u'├', &ui->window);
+    move_cursor(s_row + 16, s_col + 35, &ui->window);
+    write_char(u'┤', &ui->window);
+    for (int i = s_col + 1; i < s_col + 35; i++) {
+      move_cursor(s_row + 3, i, &ui->window);
+      write_char(u'─', &ui->window);
+      move_cursor(s_row + 16, i, &ui->window);
+      write_char(u'─', &ui->window);
+    }
 
   } else if (ui->focus == FOCUS_SAVE) {
 

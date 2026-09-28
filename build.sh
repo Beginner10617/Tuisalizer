@@ -1,5 +1,5 @@
 #!/bin/zsh
-gcc src/main.c src/logging.c src/ui.c \
+gcc src/main.c src/logging.c src/ui.c src/filesys.c \
     -I/opt/homebrew/include/SDL2 \
     -I/opt/homebrew/opt/ffmpeg/include \
     -D_THREAD_SAFE \

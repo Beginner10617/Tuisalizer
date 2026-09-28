@@ -7,6 +7,7 @@ fs_dir fs_create() {
   fs_dir out;
   out.capacity = 1;
   out.count = 0;
+  out.path = NULL;
   out.entries = malloc(sizeof(fs_entry));
   assert(out.entries);
   return out;
@@ -25,6 +26,11 @@ void fs_append(fs_dir *dir, fs_entry entry) {
 int fs_read_dir(const char *path, fs_dir *dir) {
   // overwrite previous
   dir->count = 0;
+
+  if (dir->path)
+    realpath(path, dir->path);
+  else
+    dir->path = realpath(path, dir->path);
 
   DIR *dir_ = opendir(".");
   struct dirent *x;

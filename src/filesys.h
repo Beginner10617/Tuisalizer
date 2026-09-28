@@ -13,6 +13,7 @@ typedef struct fs_entry {
 
 typedef struct fs_dir {
   fs_entry *entries;
+  char *path;
   size_t count, capacity;
 } fs_dir;
 

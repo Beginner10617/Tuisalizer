@@ -1,6 +1,7 @@
 #ifndef UI
 #define UI
 #include "../tui/tui.h"
+#include "filesys.h"
 enum { FOCUS_NORMAL, FOCUS_QUEUE, FOCUS_ADD, FOCUS_SAVE, FOCUS_QUIT };
 typedef struct {
   const char *track_name, *album_name, *artist_name;
@@ -12,6 +13,13 @@ typedef struct {
   unsigned int fps;
   InputState inputs;
   bool running;
+
+  // backend
+  fs_dir file_sys;
+
+  // search buffers
+  char search_buf[256];
+  size_t search_buf_index;
 } UI_state;
 
 typedef struct {
