@@ -292,7 +292,10 @@ void ui_render(UI_state *ui) {
       }
       int row = s_row + 4 + posn - start;
       move_cursor(row, s_col + 1, &ui->window);
-      write_str_prefix(ui->file_sys.entries[i].name, 32, &ui->window);
+      if (posn == ui->cursor_posn)
+        write_str(ui->file_sys.entries[i].name, &ui->window);
+      else
+        write_str_prefix(ui->file_sys.entries[i].name, 32, &ui->window);
 
       free(tmp_c);
       posn++;
