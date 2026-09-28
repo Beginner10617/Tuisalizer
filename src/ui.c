@@ -250,8 +250,13 @@ void ui_render(UI_state *ui) {
     write_char(u'┤', &ui->window);
 
     move_cursor(s_row + 17, s_col + 2, &ui->window);
-    write_str(ui->search_buf, &ui->window);
-    move_cursor(s_row + 17, s_col + 2 + ui->search_buf_index, &ui->window);
+    write_str(ui->search_buf +
+                  (ui->search_buf_index < 31 ? 0 : ui->search_buf_index - 30),
+              &ui->window);
+    move_cursor(s_row + 17,
+                s_col + 2 +
+                    (ui->search_buf_index < 31 ? ui->search_buf_index : 30),
+                &ui->window);
     set_color_bg(GREY, &ui->window);
     write_char(' ', &ui->window);
     set_color_bg(BLACK, &ui->window);
