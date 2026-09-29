@@ -164,8 +164,18 @@ void ui_update(UI_state *ui) {
     else if (ui->inputs.pressed[TUIK_DOWN] &&
              ui->cursor_posn + 1 < ui->file_sys.count)
       ui->cursor_posn++;
-    if (ui->inputs.pressed[TUIK_ENTER])
-      LogInfo("current selected file : %s", ui->curr_selected_entry.name);
+    if (ui->inputs.pressed[TUIK_ENTER]) {
+      const char *name = ui->curr_selected_entry.name;
+      LogInfo("current selected file : %s", name);
+      if (ui->curr_selected_entry.kind == KIND_DIR) {
+        char *new_path = fs_join_path(ui->file_sys.path, name);
+        fs_read_dir(new_path, &ui->file_sys);
+        free(new_path);
+      } else if (strncmp(".mp3", file_extension(name), 4) == 0) {
+      } else if (strncmp(".srt", file_extension(name), 4) == 0) {
+      } else if (strncmp(".plist", file_extension(name), 6) == 0) {
+      }
+    }
   }
 }
 
@@ -256,6 +266,9 @@ void ui_render(UI_state *ui) {
     move_cursor(s_row + 1, s_col + 2, &ui->window);
     write_str("ADD", &ui->window);
 
+    move_cursor(s_row + 2, s_col + 2, &ui->window);
+    write_str_suffix(ui->file_sys.path, 31, &ui->window);
+
     move_cursor(s_row + 3, s_col, &ui->window);
     write_char(u'├', &ui->window);
     move_cursor(s_row + 3, s_col + 35, &ui->window);
@@ -279,9 +292,9 @@ void ui_render(UI_state *ui) {
       } else {
         set_color_bg(BLACK, &ui->window);
       }
-      if ((strncmp(tmp_c, ".mp3", 3) == 0) ||
-          (strncmp(tmp_c, ".srt", 3) == 0) ||
-          (strncmp(tmp_c, ".plist", 3) == 0) ||
+      if ((strncmp(tmp_c, ".mp3", 4) == 0) ||
+          (strncmp(tmp_c, ".srt", 4) == 0) ||
+          (strncmp(tmp_c, ".plist", 6) == 0) ||
           (ui->file_sys.entries[i].kind == KIND_DIR)) {
         set_color_fg(WHITE, &ui->window);
       } else {
@@ -295,7 +308,7 @@ void ui_render(UI_state *ui) {
       if (posn == ui->cursor_posn)
         write_str(ui->file_sys.entries[i].name, &ui->window);
       else
-        write_str_prefix(ui->file_sys.entries[i].name, 32, &ui->window);
+        write_str_prefix(ui->file_sys.entries[i].name, 31, &ui->window);
 
       free(tmp_c);
       posn++;

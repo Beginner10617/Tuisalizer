@@ -33,7 +33,7 @@ int fs_read_dir(const char *path, fs_dir *dir) {
     dir->path = realpath(path, dir->path);
   assert(dir->path);
 
-  DIR *dir_ = opendir(".");
+  DIR *dir_ = opendir(dir->path);
   struct dirent *x;
   while (x) {
     x = readdir(dir_);
