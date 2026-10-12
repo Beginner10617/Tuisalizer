@@ -1,5 +1,6 @@
 #ifndef DECODER
 #define DECODER
+#include <stdarg.h>
 #include <stdlib.h>
 typedef struct ffmpeg_decoder ffmpeg_decoder;
 

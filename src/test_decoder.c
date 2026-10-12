@@ -1,4 +1,5 @@
 #include "decoder.h"
+#include "logging.h"
 #include <SDL.h>
 #include <stdio.h>
 int main(int argc, char **argv) {
@@ -6,6 +7,7 @@ int main(int argc, char **argv) {
     printf("Usage: %s <filepath>\n", argv[0]);
     return 1;
   }
+  LogInit("log_tmp.log");
   ffmpeg_decoder *decoder = decoder_create();
   if (decoder_load(decoder, argv[1])) {
     printf("Error loading the file %s\n", argv[1]);
@@ -56,5 +58,6 @@ int main(int argc, char **argv) {
   }
 
   decoder_cleanup(decoder);
+  LogClose();
   return 0;
 }
