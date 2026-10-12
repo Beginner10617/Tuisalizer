@@ -1,4 +1,5 @@
 #include "decoder.h"
+#include <SDL.h>
 #include <stdio.h>
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -12,9 +13,48 @@ int main(int argc, char **argv) {
   }
   float *buf = malloc(sizeof(float) * 4096);
   size_t sz;
-  decoder_sample(decoder, buf, 4096, &sz);
-  for (size_t i = 0; i < sz; i++)
-    printf("%f\n", buf[i]);
+
+  SDL_AudioDeviceID device;
+  SDL_AudioSpec spec = {0};
+
+  spec.freq = decoder_sample_rate(decoder); // Must match decoder sample rate
+  spec.format = AUDIO_F32SYS;               // 32-bit float samples
+  spec.channels = 1;                        // Mono
+  spec.samples = 4096;                      // SDL buffer size
+  spec.callback = NULL;                     // Use queued audio
+
+  if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+    fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
+    return 1;
+  }
+
+  device = SDL_OpenAudioDevice(NULL, 0, &spec, NULL, 0);
+  if (device == 0) {
+    fprintf(stderr, "SDL_OpenAudioDevice: %s\n", SDL_GetError());
+    SDL_Quit();
+    return 1;
+  }
+
+  SDL_PauseAudioDevice(device, 0); // Start playback
+
+  while (!decoder_finished(decoder)) {
+    size_t size = 0;
+
+    if (decoder_sample(decoder, buf, 4096, &size) != 0) {
+      fprintf(stderr, "Audio decoding failed\n");
+      break;
+    }
+
+    if (size > 0) {
+      SDL_QueueAudio(device, buf, (Uint32)(size * sizeof(float)));
+    }
+
+    // Avoid queuing unlimited audio ahead of playback.
+    while (SDL_GetQueuedAudioSize(device) > 16384) {
+      SDL_Delay(10);
+    }
+  }
+
   decoder_cleanup(decoder);
   return 0;
 }

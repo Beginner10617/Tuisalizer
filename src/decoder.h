@@ -17,6 +17,6 @@ int decoder_seek(ffmpeg_decoder *, double seconds);
 double decoder_position(const ffmpeg_decoder *);
 double decoder_duration(const ffmpeg_decoder *);
 
-int decoder_finished(const ffmpeg_decoder *);
-int decoder_error(const ffmpeg_decoder *);
+int decoder_sample_rate(ffmpeg_decoder *);
+int decoder_finished(ffmpeg_decoder *);
 #endif

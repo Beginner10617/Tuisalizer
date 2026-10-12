@@ -21,6 +21,8 @@ struct ffmpeg_decoder {
   int eof;
   int finished;
   int error;
+
+  double position;
 };
 
 ffmpeg_decoder *decoder_create(void) {
@@ -177,6 +179,19 @@ int decoder_sample(ffmpeg_decoder *decoder, float *data_out, size_t capacity,
     int ret = avcodec_receive_frame(decoder->codec, decoder->frame);
 
     if (ret == 0) {
+      // track timestamp
+      AVStream *stream = decoder->fmt->streams[decoder->audio_stream];
+
+      if (decoder->frame->best_effort_timestamp != AV_NOPTS_VALUE) {
+        int64_t start = stream->start_time;
+
+        if (start == AV_NOPTS_VALUE)
+          start = 0;
+
+        decoder->position = (decoder->frame->best_effort_timestamp - start) *
+                            av_q2d(stream->time_base);
+      }
+
       int max_samples = av_rescale_rnd(
           swr_get_delay(decoder->swr, decoder->codec->sample_rate) +
               decoder->frame->nb_samples,
@@ -269,14 +284,83 @@ int decoder_sample(ffmpeg_decoder *decoder, float *data_out, size_t capacity,
   return 0;
 }
 
-/*
-int decoder_seek(ffmpeg_decoder *, double seconds) {}
+int decoder_seek(ffmpeg_decoder *decoder, double seconds) {
+  if (!decoder || !decoder->fmt || !decoder->codec ||
+      decoder->audio_stream < 0 || seconds < 0.0) {
+    return -1;
+  }
 
-double decoder_position(const ffmpeg_decoder *) {}
+  AVStream *stream = decoder->fmt->streams[decoder->audio_stream];
 
-double decoder_duration(const ffmpeg_decoder *) {}
+  // Convert seconds to the audio stream's timestamp units.
+  int64_t timestamp = (int64_t)(seconds / av_q2d(stream->time_base));
 
-int decoder_finished(const ffmpeg_decoder *) {}
+  // Seek backward to a suitable decoding point.
+  int ret = av_seek_frame(decoder->fmt, decoder->audio_stream, timestamp,
+                          AVSEEK_FLAG_BACKWARD);
 
-int decoder_error(const ffmpeg_decoder *) {}
-*/
+  if (ret < 0) {
+    return ret;
+  }
+
+  // Discard buffered decoder state from the previous position.
+  avcodec_flush_buffers(decoder->codec);
+
+  // Discard any samples already converted and buffered.
+  free(decoder->buffer);
+  decoder->buffer = NULL;
+  decoder->buffer_size = 0;
+  decoder->buffer_offset = 0;
+
+  // Reset resampler state.
+  if (decoder->swr) {
+    swr_close(decoder->swr);
+
+    ret = swr_init(decoder->swr);
+    if (ret < 0) {
+      decoder->error = ret;
+      return ret;
+    }
+  }
+
+  // Clear end-of-stream and error state.
+  decoder->eof = 0;
+  decoder->finished = 0;
+  decoder->error = 0;
+
+  return 0;
+}
+
+double decoder_position(const ffmpeg_decoder *decoder) {
+  if (!decoder || !decoder->fmt || decoder->audio_stream < 0)
+    return -1.0;
+
+  return decoder->position;
+}
+
+double decoder_duration(const ffmpeg_decoder *decoder) {
+  if (!decoder || !decoder->fmt) {
+    return -1.0;
+  }
+
+  // Format duration is expressed in AV_TIME_BASE units.
+  if (decoder->fmt->duration != AV_NOPTS_VALUE && decoder->fmt->duration >= 0) {
+    return (double)decoder->fmt->duration / AV_TIME_BASE;
+  }
+
+  // Fall back to the audio stream's duration.
+  if (decoder->audio_stream >= 0) {
+    AVStream *stream = decoder->fmt->streams[decoder->audio_stream];
+
+    if (stream->duration != AV_NOPTS_VALUE && stream->duration >= 0) {
+      return stream->duration * av_q2d(stream->time_base);
+    }
+  }
+
+  return -1.0;
+}
+
+int decoder_sample_rate(ffmpeg_decoder *decoder) {
+  return decoder->codec->sample_rate;
+}
+int decoder_finished(ffmpeg_decoder *decoder) { return decoder->finished; }
