@@ -62,3 +62,6 @@ build/*
 
 # todo
 todo
+
+# test files
+*.mp3
