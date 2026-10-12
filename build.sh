@@ -6,6 +6,7 @@ gcc src/main.c src/logging.c src/ui.c src/filesys.c \
     -L/opt/homebrew/lib \
     -L/opt/homebrew/opt/ffmpeg/lib \
     -lSDL2 \
+    -lswresample \
     -lavformat \
     -lavcodec \
     -lavutil \
