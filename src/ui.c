@@ -1,4 +1,6 @@
 #include "filesys.h"
+#include "music.h"
+#include "queue.h"
 #include <stdint.h>
 #include <string.h>
 #define TUI_IMPLEMENTATION
@@ -96,6 +98,7 @@ void ui_init(UI_state *ui) {
   ui->file_sys = fs_create();
   ui->cursor_posn = 0;
   fs_read_dir(".", &ui->file_sys);
+  queue_init(&ui->music_queue, sizeof(track));
   enable_raw_mode();
 }
 
@@ -170,8 +173,18 @@ void ui_update(UI_state *ui) {
       if (ui->curr_selected_entry.kind == KIND_DIR) {
         char *new_path = fs_join_path(ui->file_sys.path, name);
         fs_read_dir(new_path, &ui->file_sys);
+        for (int i = 0; i < ui->file_sys.count; i++) {
+          LogInfo("Directory entry : %s %d", ui->file_sys.entries[i].name,
+                  ui->file_sys.entries[i].kind);
+        }
         free(new_path);
       } else if (strncmp(".mp3", file_extension(name), 4) == 0) {
+        track tmp;
+        char *path = fs_join_path(ui->file_sys.path, name);
+        load_track_metadata(path, &tmp);
+        queue_enque(&ui->music_queue, &tmp);
+        LogInfo("Added track %s to the queue", tmp.audio_file_path);
+        ui->focus = FOCUS_NORMAL;
       } else if (strncmp(".srt", file_extension(name), 4) == 0) {
       } else if (strncmp(".plist", file_extension(name), 6) == 0) {
       }

@@ -41,7 +41,8 @@ int fs_read_dir(const char *path, fs_dir *dir) {
       break;
     if (strlen(x->d_name) == 1 && strncmp(".", x->d_name, 1) == 0)
       continue;
-    fs_entry tmp = {x->d_name, x->d_type};
+    fs_entry tmp = {.name = strdup(x->d_name), .kind = x->d_type};
+    assert(tmp.name);
     fs_append(dir, tmp);
   }
   return dir->count;

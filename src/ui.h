@@ -2,6 +2,7 @@
 #define UI
 #include "../tui/tui.h"
 #include "filesys.h"
+#include "queue.h"
 enum { FOCUS_NORMAL, FOCUS_QUEUE, FOCUS_ADD, FOCUS_SAVE, FOCUS_QUIT };
 typedef struct {
   const char *track_name, *album_name, *artist_name;
@@ -24,7 +25,7 @@ typedef struct {
   fs_entry curr_selected_entry;
 
   // music display data
-
+  queue music_queue;
 } UI_state;
 
 typedef struct {

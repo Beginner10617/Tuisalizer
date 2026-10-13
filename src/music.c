@@ -36,8 +36,6 @@ int load_track_metadata(const char *path, track *out) {
   if (!path || !out)
     return -1;
 
-  memset(out, 0, sizeof(*out));
-
   AVFormatContext *fmt = NULL;
 
   int ret = avformat_open_input(&fmt, path, NULL, NULL);
@@ -58,6 +56,7 @@ int load_track_metadata(const char *path, track *out) {
   out->album = metadata_dup(tags, "album");
   out->album_artist = metadata_dup(tags, "album_artist");
   out->genre = metadata_dup(tags, "genre");
+  out->audio_file_path = path;
 
   if (fmt->duration != AV_NOPTS_VALUE && fmt->duration >= 0) {
     out->duration_seconds = (uint32_t)(fmt->duration / AV_TIME_BASE);

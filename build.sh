@@ -1,5 +1,5 @@
 #!/bin/zsh
-gcc src/main.c src/logging.c src/ui.c src/filesys.c \
+gcc src/main.c src/logging.c src/ui.c src/filesys.c src/queue.c src/music.c \
     -I/opt/homebrew/include/SDL2 \
     -I/opt/homebrew/opt/ffmpeg/include \
     -D_THREAD_SAFE \
@@ -10,4 +10,5 @@ gcc src/main.c src/logging.c src/ui.c src/filesys.c \
     -lavformat \
     -lavcodec \
     -lavutil \
-    -Wl,-framework,Cocoa
+    -Wl,-framework,Cocoa \
+    -Wno-incompatible-pointer-types-discards-qualifiers
