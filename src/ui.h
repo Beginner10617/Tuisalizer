@@ -22,6 +22,9 @@ typedef struct {
   size_t search_buf_index;
   size_t cursor_posn;
   fs_entry curr_selected_entry;
+
+  // music display data
+
 } UI_state;
 
 typedef struct {
