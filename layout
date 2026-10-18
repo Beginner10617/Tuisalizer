@@ -80,3 +80,18 @@ Quit mode:
 │                                  │
 │    [YES]                 [NO]    │
 ╰──────────────────────────────────╯
+
+Playback mode transitions:
+
+                                     ╭───────[PLAY INPUT]─────────╮
+                                     ↓                            │
+[START]                         ╭─────────╮                       │
+STOPPED ──→[QUEUE-NON-EMPTY]───→│ PLAYING │───[PAUSE INPUT]───→ PAUSED
+   ↑          [DEQUEUE]     ╭──→╰─────────╯
+   │                        │        │
+   │                        │ [MUSIC FINISHED]
+   │                        │        │
+  [NO]                    [YES]      ↓
+   │                        │     FINISHED
+   │                        │        │
+   ╰────────────────────────┴───[LOOP ONE?]
