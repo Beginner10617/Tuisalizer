@@ -1,9 +1,12 @@
+#include "decoder.h"
 #include "filesys.h"
 #include "music.h"
 #include "queue.h"
+#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 #define TUI_IMPLEMENTATION
+#define SDL_QUEUE_GAP 16384
 #include "../tui/tui.h"
 #include "logging.h"
 #include "ui.h"
@@ -93,16 +96,40 @@ void ui_init(UI_state *ui) {
   ui->window = createTermWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
   ui->fps = FPS;
   ui->running = true;
+
   ui->search_buf[0] = 0;
   ui->search_buf_index = 0;
   ui->file_sys = fs_create();
   ui->cursor_posn = 0;
   fs_read_dir(".", &ui->file_sys);
   queue_init(&ui->music_queue, sizeof(track));
+
+  ui->p_mode = PLAYER_STOPPED;
+  ui->decoder = decoder_create();
+  ui->pcm_buf = malloc(sizeof(float) * 4096);
+  assert(ui->pcm_buf);
+
+  ui->spec.freq = 48000;
+  ui->spec.format = AUDIO_F32SYS;
+  ui->spec.channels = 1;
+  ui->spec.samples = 4096;
+  ui->spec.callback = NULL; // Queued audio
+
+  if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+    LogError("SDL_Init: %s\n", SDL_GetError());
+    return;
+  }
+  ui->device = SDL_OpenAudioDevice(NULL, 0, &ui->spec, NULL, 0);
+  if (ui->device == 0) {
+    LogError("SDL_OpenAudioDevice: %s", SDL_GetError());
+    SDL_Quit();
+    return;
+  }
   enable_raw_mode();
 }
 
 void ui_update(UI_state *ui) {
+  // input handling
   tui_poll_events(&ui->inputs);
   if (ui->inputs.pressed[TUIK_CHAR] && ui->focus == FOCUS_NORMAL) {
     switch (ui->inputs.c_data) {
@@ -173,10 +200,6 @@ void ui_update(UI_state *ui) {
       if (ui->curr_selected_entry.kind == KIND_DIR) {
         char *new_path = fs_join_path(ui->file_sys.path, name);
         fs_read_dir(new_path, &ui->file_sys);
-        for (int i = 0; i < ui->file_sys.count; i++) {
-          LogInfo("Directory entry : %s %d", ui->file_sys.entries[i].name,
-                  ui->file_sys.entries[i].kind);
-        }
         free(new_path);
       } else if (strncmp(".mp3", file_extension(name), 4) == 0) {
         track tmp;
@@ -188,6 +211,51 @@ void ui_update(UI_state *ui) {
       } else if (strncmp(".srt", file_extension(name), 4) == 0) {
       } else if (strncmp(".plist", file_extension(name), 6) == 0) {
       }
+    }
+  }
+
+  // playback state
+  if (ui->p_mode == PLAYER_STOPPED && ui->music_queue.size) {
+    queue_deque(&ui->music_queue, &ui->current_track);
+    ui->p_mode = PLAYER_PLAYING;
+    ui->decoder_change_flags = 1;
+  }
+
+  // TODO : music playing
+  if (ui->decoder_change_flags & 1) {
+    ui->decoder_change_flags &= ~1;
+
+    decoder_unload(ui->decoder);
+    SDL_ClearQueuedAudio(ui->device);
+
+    if (decoder_load(ui->decoder, ui->current_track.audio_file_path) != 0) {
+      LogError("Error loading file: %s", ui->current_track.audio_file_path);
+      ui->p_mode = PLAYER_STOPPED;
+    } else {
+      // Configure FFmpeg resampling here so that decoder output
+      // is 48000 Hz, mono, float32.
+      SDL_PauseAudioDevice(ui->device, 0);
+    }
+    LogInfo("Decoder sample rate: %d", decoder_sample_rate(ui->decoder));
+
+    LogInfo("Audio device: %u", (unsigned int)ui->device);
+  } else if (ui->decoder_change_flags & (1 << 1)) {
+    // seek to new position
+  }
+  // decode and queue the buffer
+  if (ui->p_mode == PLAYER_PLAYING) {
+    size_t size = 0;
+    if (SDL_GetQueuedAudioSize(ui->device) < SDL_QUEUE_GAP) {
+      if (decoder_sample(ui->decoder, ui->pcm_buf, 4096, &size) != 0) {
+        LogError("Audio decoding failed, size = %d", size);
+        ui->p_mode = PLAYER_STOPPED;
+        SDL_ClearQueuedAudio(ui->device);
+      }
+      if (size > 0) {
+        SDL_QueueAudio(ui->device, ui->pcm_buf, (Uint32)(size * sizeof(float)));
+      } else
+        LogError("Audio decoding failed");
+    } else {
     }
   }
 }

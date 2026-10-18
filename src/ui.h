@@ -1,9 +1,19 @@
 #ifndef UI
 #define UI
 #include "../tui/tui.h"
+#include "decoder.h"
 #include "filesys.h"
+#include "music.h"
 #include "queue.h"
+#include <SDL.h>
 enum { FOCUS_NORMAL, FOCUS_QUEUE, FOCUS_ADD, FOCUS_SAVE, FOCUS_QUIT };
+typedef enum {
+  PLAYER_STOPPED,
+  PLAYER_PLAYING,
+  PLAYER_PAUSED,
+  PLAYER_FINISHED,
+} playback_mode;
+
 typedef struct {
   const char *track_name, *album_name, *artist_name;
   int played_seconds, duration_seconds;
@@ -26,6 +36,16 @@ typedef struct {
 
   // music display data
   queue music_queue;
+  playback_mode p_mode;
+  track current_track;
+
+  // music decoding
+  ffmpeg_decoder *decoder;
+  int decoder_change_flags; // MSB, ..., position changed ?, track changed ?
+  float *pcm_buf;
+  // sdl music backend
+  SDL_AudioDeviceID device;
+  SDL_AudioSpec spec;
 } UI_state;
 
 typedef struct {

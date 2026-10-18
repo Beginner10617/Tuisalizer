@@ -9,6 +9,7 @@ int main(int argc, char **argv) {
   }
   LogInit("log_tmp.log");
   ffmpeg_decoder *decoder = decoder_create();
+  decoder_unload(decoder);
   if (decoder_load(decoder, argv[1])) {
     printf("Error loading the file %s\n", argv[1]);
     return 1;
