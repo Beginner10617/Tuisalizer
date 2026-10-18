@@ -90,7 +90,7 @@ button Buttons[BUTTON_COUNT] = {{{"[SPACE] Play", "[SPACE] Pause"},
                                  YELLOW,
                                  BLACK}};
 
-void ui_init(UI_state *ui) {
+int ui_init(UI_state *ui) {
   LogInit("logs.log");
   ui->focus = FOCUS_NORMAL;
   ui->window = createTermWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -117,15 +117,16 @@ void ui_init(UI_state *ui) {
 
   if (SDL_Init(SDL_INIT_AUDIO) < 0) {
     LogError("SDL_Init: %s\n", SDL_GetError());
-    return;
+    return 1;
   }
   ui->device = SDL_OpenAudioDevice(NULL, 0, &ui->spec, NULL, 0);
   if (ui->device == 0) {
     LogError("SDL_OpenAudioDevice: %s", SDL_GetError());
     SDL_Quit();
-    return;
+    return 1;
   }
   enable_raw_mode();
+  return 0;
 }
 
 void ui_update(UI_state *ui) {
@@ -183,7 +184,7 @@ void ui_update(UI_state *ui) {
                ui->search_buf_index < sizeof(ui->search_buf) - 1) {
       ui->cursor_posn = 0;
       ui->search_buf[ui->search_buf_index++] = ' ';
-    } else if (ui->inputs.pressed[TUIK_BACK] && ui->search_buf_index >= 0) {
+    } else if (ui->inputs.pressed[TUIK_BACK] && ui->search_buf_index > 0) {
       if (ui->search_buf_index > 0)
         ui->cursor_posn = 0;
       ui->search_buf_index--;
@@ -208,6 +209,7 @@ void ui_update(UI_state *ui) {
         queue_enque(&ui->music_queue, &tmp);
         LogInfo("Added track %s to the queue", tmp.audio_file_path);
         ui->focus = FOCUS_NORMAL;
+        Buttons[BUTTON_INDEX_ADD].mode = 0;
       } else if (strncmp(".srt", file_extension(name), 4) == 0) {
       } else if (strncmp(".plist", file_extension(name), 6) == 0) {
       }
@@ -241,18 +243,27 @@ void ui_update(UI_state *ui) {
     LogInfo("Audio device: %u", (unsigned int)ui->device);
   } else if (ui->decoder_change_flags & (1 << 1)) {
     // seek to new position
+  } else if (decoder_finished(ui->decoder)) {
+    ui->p_mode = PLAYER_STOPPED;
+    LogInfo("Finished");
+    LogClose();
+    exit(1);
   }
   // decode and queue the buffer
   if (ui->p_mode == PLAYER_PLAYING) {
     size_t size = 0;
     if (SDL_GetQueuedAudioSize(ui->device) < SDL_QUEUE_GAP) {
       if (decoder_sample(ui->decoder, ui->pcm_buf, 4096, &size) != 0) {
-        LogError("Audio decoding failed, size = %d", size);
+        LogError("Audio decoding failed, size = %zu", size);
         ui->p_mode = PLAYER_STOPPED;
         SDL_ClearQueuedAudio(ui->device);
       }
       if (size > 0) {
-        SDL_QueueAudio(ui->device, ui->pcm_buf, (Uint32)(size * sizeof(float)));
+        if (SDL_QueueAudio(ui->device, ui->pcm_buf,
+                           (Uint32)(size * sizeof(float)))) {
+          LogError("SDL_QueueAudio: %s\n", SDL_GetError());
+          printf("ZERO SIZE, size = %zu\n", size);
+        }
       } else
         LogError("Audio decoding failed");
     } else {

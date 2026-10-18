@@ -55,7 +55,7 @@ typedef struct {
   uint8_t bgclr, fgclr;
 } button;
 
-void ui_init(UI_state *);
+int ui_init(UI_state *);
 void ui_update(UI_state *);
 void ui_render(UI_state *);
 void ui_close(UI_state *);

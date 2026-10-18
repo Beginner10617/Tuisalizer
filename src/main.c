@@ -4,7 +4,10 @@
 
 int main() {
   UI_state ui;
-  ui_init(&ui);
+  if (ui_init(&ui)) {
+    printf("Initialization failed, check logs\n");
+    return 1;
+  }
   FrameLimiter limiter;
   frame_limiter_init(ui.fps, &limiter);
   while (ui.running) {
