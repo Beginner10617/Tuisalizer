@@ -244,10 +244,7 @@ void ui_update(UI_state *ui) {
   } else if (ui->decoder_change_flags & (1 << 1)) {
     // seek to new position
   } else if (decoder_finished(ui->decoder)) {
-    ui->p_mode = PLAYER_STOPPED;
-    LogInfo("Finished");
-    LogClose();
-    exit(1);
+    ui->p_mode = PLAYER_FINISHED;
   }
   // decode and queue the buffer
   if (ui->p_mode == PLAYER_PLAYING) {

@@ -1,4 +1,5 @@
 #include "decoder.h"
+#include "logging.h"
 #include <assert.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -266,9 +267,6 @@ int decoder_sample(ffmpeg_decoder *decoder, float *data_out, size_t capacity,
     if (ret == AVERROR(EAGAIN))
       continue;
 
-    if (ret == AVERROR_EOF)
-      continue;
-
     if (ret < 0) {
       // End of input: flush delayed decoder output.
       decoder->eof = 1;
@@ -364,3 +362,26 @@ int decoder_sample_rate(ffmpeg_decoder *decoder) {
   return decoder->codec->sample_rate;
 }
 int decoder_finished(ffmpeg_decoder *decoder) { return decoder->finished; }
+
+static void ffmpeg_log_callback(void *avcl, int level, const char *fmt,
+                                va_list vl) {
+  if (level > av_log_get_level())
+    return;
+
+  char message[1024];
+  vsnprintf(message, sizeof(message), fmt, vl);
+
+  // FFmpeg messages often end with a newline.
+  message[strcspn(message, "\r\n")] = '\0';
+
+  if (message[0] == '\0')
+    return;
+
+  if (level <= AV_LOG_ERROR) {
+    LogError("[FFmpeg] %s", message);
+  } else if (level <= AV_LOG_WARNING) {
+    LogInfo("[FFmpeg] %s", message);
+  } else {
+    LogDebug("[FFmpeg] %s", message);
+  }
+}
