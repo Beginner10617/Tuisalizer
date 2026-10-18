@@ -441,6 +441,10 @@ void ui_render(UI_state *ui) {
 }
 
 void ui_close(UI_state *ui) {
+  free(ui->pcm_buf);
+  queue_destroy(&ui->music_queue);
+  fs_free_dir(&ui->file_sys);
+  SDL_Quit();
   show_cursor();
   LogClose();
 }
