@@ -8,10 +8,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-static char *metadata_dup(AVDictionary *dict, const char *key) {
-  AVDictionaryEntry *entry = av_dict_get(dict, key, NULL, 0);
+char *metadata_dup(AVDictionary *tags, const char *key) {
+  if (!tags || !key)
+    return NULL;
 
-  return entry ? strdup(entry->value) : NULL;
+  AVDictionaryEntry *entry = av_dict_get(tags, key, NULL, 0);
+
+  if (!entry || !entry->value)
+    return NULL;
+
+  return strdup(entry->value);
 }
 
 static unsigned parse_uint(const char *s) {

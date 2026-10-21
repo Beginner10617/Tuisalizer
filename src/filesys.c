@@ -27,18 +27,16 @@ int fs_read_dir(const char *path, fs_dir *dir) {
   // overwrite previous
   dir->count = 0;
 
-  if (dir->path)
-    assert(realpath(path, dir->path));
-  else
-    dir->path = realpath(path, dir->path);
-  assert(dir->path);
+  char *resolved = realpath(path, NULL);
+  assert(resolved);
+
+  free(dir->path);
+  dir->path = resolved;
 
   DIR *dir_ = opendir(dir->path);
   struct dirent *x;
-  while (x) {
-    x = readdir(dir_);
-    if (!x)
-      break;
+
+  while ((x = readdir(dir_)) != NULL) {
     if (strlen(x->d_name) == 1 && strncmp(".", x->d_name, 1) == 0)
       continue;
     fs_entry tmp = {.name = strdup(x->d_name), .kind = x->d_type};
@@ -55,13 +53,20 @@ void fs_free_dir(fs_dir *dir) {
 }
 
 char *fs_join_path(const char *dir, const char *name) {
-  int out_sz = strlen(dir) + strlen(name) + 1;
-  char *out = malloc(sizeof(char) * out_sz);
-  for (int i = 0; i < strlen(dir); i++)
-    out[i] = dir[i];
-  out[strlen(dir)] = '/';
-  for (int i = 0; i < strlen(name); i++)
-    out[i + strlen(dir) + 1] = name[i];
+  if (!dir || !name)
+    return NULL;
+
+  size_t dir_len = strlen(dir);
+  size_t name_len = strlen(name);
+
+  char *out = malloc(dir_len + name_len + 2);
+  if (!out)
+    return NULL;
+
+  memcpy(out, dir, dir_len);
+  out[dir_len] = '/';
+  memcpy(out + dir_len + 1, name, name_len + 1);
+
   return out;
 }
 

@@ -205,9 +205,12 @@ void ui_update(UI_state *ui) {
       } else if (strncmp(".mp3", file_extension(name), 4) == 0) {
         track tmp;
         char *path = fs_join_path(ui->file_sys.path, name);
+
         load_track_metadata(path, &tmp);
         queue_enque(&ui->music_queue, &tmp);
-        LogInfo("Added track %s to the queue", tmp.audio_file_path);
+        LogInfo(
+            "Added track %s to the queue : TITLE : %s ARTIST : %s ALBUM : %s",
+            tmp.audio_file_path, tmp.title, tmp.artist, tmp.album);
         ui->focus = FOCUS_NORMAL;
         Buttons[BUTTON_INDEX_ADD].mode = 0;
       } else if (strncmp(".srt", file_extension(name), 4) == 0) {
