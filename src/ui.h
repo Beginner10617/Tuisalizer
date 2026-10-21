@@ -6,7 +6,7 @@
 #include "music.h"
 #include "queue.h"
 #include <SDL.h>
-enum { FOCUS_NORMAL, FOCUS_QUEUE, FOCUS_ADD, FOCUS_SAVE, FOCUS_QUIT };
+enum { FOCUS_NORMAL, FOCUS_QUEUE, FOCUS_ADD, FOCUS_QUIT };
 typedef enum {
   PLAYER_STOPPED,
   PLAYER_PLAYING,

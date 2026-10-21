@@ -20,7 +20,7 @@
 │  [I] QUEUE                                                                                   │
 │  ▸ [Next music]      [Music-2]        [Music-3]        [Music-4]            [Music-5]        │
 ├──────────────────────────────────────────────────────────────────────────────────────────────┤
-│  [SPACE] Pause    [←→] Seek    [↑↓] Volume   [L] Loop   [A] Add  [S] Save    [Q] Quit        │
+│  [SPACE] Pause      [←→] Seek      [↑↓] Volume     [L] Loop     [A] Add      [Q] Quit        │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
 The cursor :
   Can't move to the lower panel

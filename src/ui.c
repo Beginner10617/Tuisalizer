@@ -13,8 +13,8 @@
 #define SCREEN_WIDTH 115
 #define SCREEN_HEIGHT 30
 #define FPS 30
-#define BUTTON_COUNT 8
-#define LOWER_PANEL_BUTTON_COUNT 7
+#define BUTTON_COUNT 7
+#define LOWER_PANEL_BUTTON_COUNT 6
 #define LOWER_PANEL_BUTTON_WIDTH (SCREEN_WIDTH - 2) / LOWER_PANEL_BUTTON_COUNT
 
 #define BUTTON_INDEX_PAUSE_PLAY 0
@@ -22,9 +22,8 @@
 #define BUTTON_INDEX_VOLUME 2
 #define BUTTON_INDEX_LOOP 3
 #define BUTTON_INDEX_ADD 4
-#define BUTTON_INDEX_SAVE 5
-#define BUTTON_INDEX_QUIT 6
-#define BUTTON_INDEX_QUEUE 7
+#define BUTTON_INDEX_QUIT 5
+#define BUTTON_INDEX_QUEUE 6
 
 button Buttons[BUTTON_COUNT] = {{{"[SPACE] Play", "[SPACE] Pause"},
                                  SCREEN_HEIGHT - 2,
@@ -66,17 +65,9 @@ button Buttons[BUTTON_COUNT] = {{{"[SPACE] Play", "[SPACE] Pause"},
                                  AQUA,
                                  BLACK},
 
-                                {{"[S] Save", "[-] Save"},
-                                 SCREEN_HEIGHT - 2,
-                                 1 + LOWER_PANEL_BUTTON_WIDTH * 5,
-                                 0,
-                                 false,
-                                 BLUE,
-                                 BLACK},
-
                                 {{"[Q] Quit", "[-] Quit"},
                                  SCREEN_HEIGHT - 2,
-                                 1 + LOWER_PANEL_BUTTON_WIDTH * 6,
+                                 1 + LOWER_PANEL_BUTTON_WIDTH * 5,
                                  0,
                                  false,
                                  RED,
@@ -147,13 +138,6 @@ void ui_update(UI_state *ui) {
       ui->focus_button_id = BUTTON_INDEX_ADD;
       Buttons[BUTTON_INDEX_ADD].mode = 1;
       LogInfo("switching to focus mode add");
-      break;
-    case 's':
-    case 'S':
-      ui->focus = FOCUS_SAVE;
-      ui->focus_button_id = BUTTON_INDEX_SAVE;
-      Buttons[BUTTON_INDEX_SAVE].mode = 1;
-      LogInfo("switching to focus mode save");
       break;
     case 'q':
     case 'Q':
@@ -297,10 +281,6 @@ void ui_render(UI_state *ui) {
     mode_str = "ADD";
     bg_clr = AQUA;
     break;
-  case FOCUS_SAVE:
-    mode_str = "SAVE";
-    bg_clr = BLUE;
-    break;
   }
   move_cursor(1, SCREEN_WIDTH - strlen(mode_str) - 3, &ui->window);
   set_color_bg(bg_clr, &ui->window);
@@ -428,8 +408,6 @@ void ui_render(UI_state *ui) {
       move_cursor(s_row + 16, i, &ui->window);
       write_char(u'─', &ui->window);
     }
-
-  } else if (ui->focus == FOCUS_SAVE) {
 
   } else if (ui->focus == FOCUS_QUEUE) {
     // no separate rect per-se, but a cursor to navigate
