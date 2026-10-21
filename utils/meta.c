@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
     }
   }
   char **arg_names = malloc(sizeof(char *) * cols);
+  assert(arg_names);
   fseek(file, 0, SEEK_SET); // Back to beginning
   c = ' ';
   for (int i = 0; i < cols; i++) {
@@ -44,6 +45,7 @@ int main(int argc, char **argv) {
       assert(fscanf(file, "%c", &c) != EOF);
     }
     char *tmp = malloc(sizeof(char) * (sz));
+    assert(tmp);
     fseek(file, -sz, SEEK_CUR);
     for (int j = 0; j < sz; j++)
       assert(fscanf(file, "%c", &tmp[j]) != EOF);
@@ -64,6 +66,7 @@ int main(int argc, char **argv) {
   }
 
   char **args = malloc(sizeof(char *) * cols);
+  assert(args);
   bool running = true;
   while (running) {
     for (int i = 0; i < cols && running; i++) {
@@ -76,6 +79,7 @@ int main(int argc, char **argv) {
         assert(fscanf(file, "%c", &c) != EOF);
       }
       char *tmp = malloc(sizeof(char) * (sz));
+      assert(tmp);
       fseek(file, -sz, SEEK_CUR);
       for (int j = 0; j < sz; j++)
         assert(fscanf(file, "%c", &tmp[j]) != EOF);
@@ -87,7 +91,7 @@ int main(int argc, char **argv) {
       }
     }
     if (running) {
-      size_t sz = 55 + 16 * cols + strlen(args[path_id]) + 7;
+      size_t sz = 55 + 16 * cols + strlen(args[path_id]) + 8;
       for (int k = 0; k < cols; k++)
         sz += strlen(arg_names[k]) + strlen(args[k]);
       char *cmd = calloc(sz + 1, sizeof(char));
@@ -116,9 +120,31 @@ int main(int argc, char **argv) {
       strncpy(cmd + locn, args[path_id], strlen(args[path_id]));
       locn += strlen(args[path_id]) - 4;
       strncpy(cmd + locn, "_tagged.mp3", 11);
+      printf("%s\n", cmd);
       int ret = system(cmd);
       printf("%s\nexecution return value = %d\n\n", cmd, ret);
       free(cmd);
+      assert(ret == 0);
+
+      cmd = calloc(4 + strlen(args[path_id]), sizeof(char));
+      assert(cmd);
+      strncpy(cmd, "rm ", 3);
+      strncpy(cmd + 3, args[path_id], strlen(args[path_id]));
+      assert(!system(cmd));
+      printf("%s\n", cmd);
+      free(cmd);
+
+      cmd = calloc(4 + strlen(args[path_id]) * 2 + 8, sizeof(char));
+      assert(cmd);
+      strncpy(cmd, "mv ", 3);
+      strncpy(cmd + 3, args[path_id], strlen(args[path_id]));
+      strncpy(cmd + 3 + strlen(args[path_id]) - 4, "_tagged.mp3 ", 12);
+      strncpy(cmd + 3 + strlen(args[path_id]) + 8, args[path_id],
+              strlen(args[path_id]));
+      printf("%s\n", cmd);
+      assert(!system(cmd));
+      free(cmd);
+
       // ffmpeg -i [PATH] \
   -map 0:a \
   -c:a copy \
