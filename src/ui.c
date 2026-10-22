@@ -174,8 +174,7 @@ void ui_update(UI_state *ui) {
       ui->p_mode = PLAYER_PAUSED;
     }
   }
-  if (ui->focus == FOCUS_NORMAL &&
-      (ui->p_mode == PLAYER_PLAYING || ui->p_mode == PLAYER_PAUSED) &&
+  if (ui->focus == FOCUS_NORMAL && ui->p_mode == PLAYER_PLAYING &&
       (ui->inputs.pressed[TUIK_LEFT] ^ ui->inputs.pressed[TUIK_RIGHT])) {
     double src = decoder_position(ui->decoder);
     double dur = decoder_duration(ui->decoder);
