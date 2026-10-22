@@ -41,6 +41,7 @@ void LogError(const char *str, ...) {
   fprintf(log_file, "\n");
   va_end(args);
 }
+void LogFlush() { fflush(log_file); }
 
 static void ffmpeg_log_callback(void *avcl, int level, const char *fmt,
                                 va_list vl) {
