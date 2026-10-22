@@ -38,6 +38,7 @@ typedef struct {
   queue music_queue;
   playback_mode p_mode;
   track current_track;
+  bool loop;
 
   // music decoding
   ffmpeg_decoder *decoder;

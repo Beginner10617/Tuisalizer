@@ -96,6 +96,7 @@ int ui_init(UI_state *ui) {
   queue_init(&ui->music_queue, sizeof(track));
 
   ui->p_mode = PLAYER_STOPPED;
+  ui->loop = false;
   ui->decoder = decoder_create();
   ui->pcm_buf = malloc(sizeof(float) * 4096);
   assert(ui->pcm_buf);
@@ -125,6 +126,11 @@ void ui_update(UI_state *ui) {
   tui_poll_events(&ui->inputs);
   if (ui->inputs.pressed[TUIK_CHAR] && ui->focus == FOCUS_NORMAL) {
     switch (ui->inputs.c_data) {
+    case 'l':
+    case 'L':
+      ui->loop = !ui->loop;
+      Buttons[BUTTON_INDEX_LOOP].mode = ui->loop;
+      break;
     case 'i':
     case 'I':
       ui->focus = FOCUS_QUEUE;
@@ -150,6 +156,16 @@ void ui_update(UI_state *ui) {
       break;
     }
   }
+  if (ui->focus == FOCUS_NORMAL && ui->inputs.pressed[TUIK_SPACE]) {
+    if (ui->p_mode == PLAYER_PAUSED) {
+      Buttons[BUTTON_INDEX_PAUSE_PLAY].mode = 0;
+      ui->p_mode = PLAYER_PLAYING;
+    } else if (ui->p_mode == PLAYER_PLAYING) {
+      Buttons[BUTTON_INDEX_PAUSE_PLAY].mode = 1;
+      ui->p_mode = PLAYER_PAUSED;
+    }
+  }
+
   if (ui->inputs.pressed[TUIK_ESCAPE] && ui->focus != FOCUS_NORMAL) {
     LogInfo("switching to focus mode normal");
     ui->focus = FOCUS_NORMAL;
@@ -204,6 +220,14 @@ void ui_update(UI_state *ui) {
   }
 
   // playback state
+  if (ui->p_mode == PLAYER_FINISHED) {
+    if (ui->loop) {
+      ui->p_mode = PLAYER_PLAYING;
+      ui->decoder_change_flags = 1;
+    } else {
+      ui->p_mode = PLAYER_STOPPED;
+    }
+  }
   if (ui->p_mode == PLAYER_STOPPED && ui->music_queue.size) {
     queue_deque(&ui->music_queue, &ui->current_track);
     ui->p_mode = PLAYER_PLAYING;
@@ -299,7 +323,7 @@ void ui_render(UI_state *ui) {
   }
 
   // Main window
-  if (ui->p_mode == PLAYER_PLAYING) {
+  if (ui->p_mode == PLAYER_PLAYING || ui->p_mode == PLAYER_PAUSED) {
     move_cursor(3, 3, &ui->window);
     write_str("Genre: ", &ui->window);
     write_str(ui->current_track.genre, &ui->window);
