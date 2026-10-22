@@ -26,6 +26,9 @@
 #define BUTTON_INDEX_QUIT 5
 #define BUTTON_INDEX_QUEUE 6
 
+// helper
+char *to_time_str(int sec);
+
 button Buttons[BUTTON_COUNT] = {{{"[SPACE] Play", "[SPACE] Pause"},
                                  SCREEN_HEIGHT - 2,
                                  1,
@@ -342,6 +345,33 @@ void ui_render(UI_state *ui) {
     int colm = SCREEN_WIDTH / 2 - strlen(ui->current_track.artist) / 2;
     move_cursor(SCREEN_HEIGHT - 7, colm, &ui->window);
     write_str(ui->current_track.artist, &ui->window);
+
+    int dur_sec = (int)decoder_duration(ui->decoder);
+    int pos_sec = (int)decoder_position(ui->decoder);
+
+    char *tmp = to_time_str(pos_sec);
+    move_cursor(SCREEN_HEIGHT - 9, 3, &ui->window);
+    write_str(tmp, &ui->window);
+    free(tmp);
+
+    tmp = to_time_str(dur_sec);
+    move_cursor(SCREEN_HEIGHT - 9, SCREEN_WIDTH - 8, &ui->window);
+    write_str(tmp, &ui->window);
+    free(tmp);
+
+    move_cursor(SCREEN_HEIGHT - 9, 9, &ui->window);
+    int tot_sz = SCREEN_WIDTH - 18;
+    int highlight_sz = tot_sz * pos_sec / dur_sec;
+    for (int i = 0; i < tot_sz; i++) {
+      move_cursor(SCREEN_HEIGHT - 9, 9 + i, &ui->window);
+      if (i == highlight_sz) {
+        write_char(u'●', &ui->window);
+        set_color_fg(GREY, &ui->window);
+      } else {
+        write_char(u'━', &ui->window);
+      }
+    }
+    set_color_fg(WHITE, &ui->window);
   }
   //
 
@@ -518,4 +548,15 @@ void enque_from_plist(queue *m_que, const char *filepath) {
     queue_enque(m_que, &tmp);
   }
   fclose(file);
+}
+
+char *to_time_str(int sec) {
+  char *out = calloc(6, sizeof(char));
+  int m = sec / 60, s = sec % 60;
+  out[2] = ':';
+  out[0] = m / 10 + '0';
+  out[1] = m % 10 + '0';
+  out[3] = s / 10 + '0';
+  out[4] = s % 10 + '0';
+  return out;
 }
