@@ -1,4 +1,5 @@
 #include "music.h"
+#include <assert.h>
 #include <errno.h>
 #include <libavformat/avformat.h>
 #include <libavutil/dict.h>
@@ -7,6 +8,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+// helper
+char *morph_dash(char *in) {
+  char *out = calloc(1 + strlen(in), sizeof(char));
+  assert(out);
+  char prev, curr = 0;
+  int j = 0;
+  for (int i = 0; i < strlen(in); i++) {
+    prev = curr;
+    curr = in[i];
+    if (prev != '-' && curr == '-') {
+      out[j++] = ' ';
+    } else if (prev == '-' && curr == '-') {
+      out[--j] = '-';
+      j++;
+    } else
+      out[j++] = in[i];
+  }
+  free(in);
+  return out;
+}
 
 char *metadata_dup(AVDictionary *tags, const char *key) {
   if (!tags || !key)
@@ -57,11 +79,12 @@ int load_track_metadata(const char *path, track *out) {
 
   AVDictionary *tags = fmt->metadata;
 
-  out->title = metadata_dup(tags, "title");
-  out->artist = metadata_dup(tags, "artist");
-  out->album = metadata_dup(tags, "album");
-  out->album_artist = metadata_dup(tags, "album_artist");
-  out->genre = metadata_dup(tags, "genre");
+  out->title = morph_dash(metadata_dup(tags, "title"));
+  out->artist = morph_dash(metadata_dup(tags, "artist"));
+  out->album = morph_dash(metadata_dup(tags, "album"));
+  out->album_artist = morph_dash(metadata_dup(tags, "album_artist"));
+  out->genre = morph_dash(metadata_dup(tags, "genre"));
+  // morph
   out->audio_file_path = path;
 
   if (fmt->duration != AV_NOPTS_VALUE && fmt->duration >= 0) {

@@ -298,6 +298,21 @@ void ui_render(UI_state *ui) {
     write_char(u'─', &ui->window);
   }
 
+  // Main window
+  if (ui->p_mode == PLAYER_PLAYING) {
+    move_cursor(3, 3, &ui->window);
+    write_str("Genre: ", &ui->window);
+    write_str(ui->current_track.genre, &ui->window);
+
+    move_cursor(SCREEN_HEIGHT - 7, 3, &ui->window);
+    write_str(ui->current_track.title, &ui->window);
+
+    int colm = SCREEN_WIDTH / 2 - strlen(ui->current_track.artist) / 2;
+    move_cursor(SCREEN_HEIGHT - 7, colm, &ui->window);
+    write_str(ui->current_track.artist, &ui->window);
+  }
+  //
+
   // Queue window
   move_cursor(SCREEN_HEIGHT - 5, 3, &ui->window);
   write_str("[I] QUEUE", &ui->window);
