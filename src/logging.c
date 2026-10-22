@@ -32,6 +32,7 @@ void LogDebug(const char *str, ...) {
   vfprintf(log_file, str, args);
   fprintf(log_file, "\n");
   va_end(args);
+  LogFlush();
 }
 void LogError(const char *str, ...) {
   va_list args;

@@ -17,7 +17,7 @@
 #define BUTTON_COUNT 7
 #define LOWER_PANEL_BUTTON_COUNT 6
 #define LOWER_PANEL_BUTTON_WIDTH (SCREEN_WIDTH - 2) / LOWER_PANEL_BUTTON_COUNT
-
+#define LOWER_PANEL_BUTTON_OFFSET 7
 #define BUTTON_INDEX_PAUSE_PLAY 0
 #define BUTTON_INDEX_SEEK 1
 #define BUTTON_INDEX_VOLUME 2
@@ -25,65 +25,67 @@
 #define BUTTON_INDEX_ADD 4
 #define BUTTON_INDEX_QUIT 5
 #define BUTTON_INDEX_QUEUE 6
+#define TIMELINE_SEEK_STEP 15 // in sec
 
 // helper
 char *to_time_str(int sec);
 
-button Buttons[BUTTON_COUNT] = {{{"[SPACE] Play", "[SPACE] Pause"},
-                                 SCREEN_HEIGHT - 2,
-                                 1,
-                                 0,
-                                 false,
-                                 LIME,
-                                 BLACK},
+button Buttons[BUTTON_COUNT] = {
+    {{"[SPACE] Play", "[SPACE] Pause"},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_OFFSET,
+     0,
+     false,
+     LIME,
+     BLACK},
 
-                                {{"[←→] Seek", ""},
-                                 SCREEN_HEIGHT - 2,
-                                 1 + LOWER_PANEL_BUTTON_WIDTH * 1,
-                                 0,
-                                 false,
-                                 SILVER,
-                                 BLACK},
+    {{"[←→] Seek", ""},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 1 + LOWER_PANEL_BUTTON_OFFSET,
+     0,
+     false,
+     SILVER,
+     BLACK},
 
-                                {{"[↑↓] Volume", ""},
-                                 SCREEN_HEIGHT - 2,
-                                 1 + LOWER_PANEL_BUTTON_WIDTH * 2,
-                                 0,
-                                 false,
-                                 TEAL,
-                                 BLACK},
+    {{"[↑↓] Volume", ""},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 2 + LOWER_PANEL_BUTTON_OFFSET,
+     0,
+     false,
+     TEAL,
+     BLACK},
 
-                                {{"[L] Loop", "[L] UnLoop"},
-                                 SCREEN_HEIGHT - 2,
-                                 1 + LOWER_PANEL_BUTTON_WIDTH * 3,
-                                 0,
-                                 false,
-                                 PURPLE,
-                                 BLACK},
+    {{"[L] Loop", "[L] UnLoop"},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 3 + LOWER_PANEL_BUTTON_OFFSET,
+     0,
+     false,
+     PURPLE,
+     BLACK},
 
-                                {{"[A] Add", "[-] Add"},
-                                 SCREEN_HEIGHT - 2,
-                                 1 + LOWER_PANEL_BUTTON_WIDTH * 4,
-                                 0,
-                                 false,
-                                 AQUA,
-                                 BLACK},
+    {{"[A] Add", "[-] Add"},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 4 + LOWER_PANEL_BUTTON_OFFSET,
+     0,
+     false,
+     AQUA,
+     BLACK},
 
-                                {{"[Q] Quit", "[-] Quit"},
-                                 SCREEN_HEIGHT - 2,
-                                 1 + LOWER_PANEL_BUTTON_WIDTH * 5,
-                                 0,
-                                 false,
-                                 RED,
-                                 BLACK},
+    {{"[Q] Quit", "[-] Quit"},
+     SCREEN_HEIGHT - 2,
+     1 + LOWER_PANEL_BUTTON_WIDTH * 5 + LOWER_PANEL_BUTTON_OFFSET,
+     0,
+     false,
+     RED,
+     BLACK},
 
-                                {{"[I] Queue", "[-] Queue"},
-                                 SCREEN_HEIGHT - 5,
-                                 3,
-                                 0,
-                                 false,
-                                 YELLOW,
-                                 BLACK}};
+    {{"[I] Queue", "[-] Queue"},
+     SCREEN_HEIGHT - 5,
+     3,
+     0,
+     false,
+     YELLOW,
+     BLACK}};
 
 int ui_init(UI_state *ui) {
   LogInit("logs.log");
@@ -172,6 +174,20 @@ void ui_update(UI_state *ui) {
       ui->p_mode = PLAYER_PAUSED;
     }
   }
+  if (ui->focus == FOCUS_NORMAL &&
+      (ui->p_mode == PLAYER_PLAYING || ui->p_mode == PLAYER_PAUSED) &&
+      (ui->inputs.pressed[TUIK_LEFT] ^ ui->inputs.pressed[TUIK_RIGHT])) {
+    double src = decoder_position(ui->decoder);
+    double dur = decoder_duration(ui->decoder);
+    if (ui->inputs.pressed[TUIK_LEFT]) {
+      double dst = src > TIMELINE_SEEK_STEP ? src - TIMELINE_SEEK_STEP : 0.0;
+      decoder_seek(ui->decoder, dst);
+    } else if (ui->inputs.pressed[TUIK_RIGHT]) {
+      double dst =
+          src + TIMELINE_SEEK_STEP < dur ? src + TIMELINE_SEEK_STEP : dur;
+      decoder_seek(ui->decoder, dst);
+    }
+  }
 
   if (ui->inputs.pressed[TUIK_ESCAPE] && ui->focus != FOCUS_NORMAL) {
     LogInfo("switching to focus mode normal");
@@ -218,6 +234,7 @@ void ui_update(UI_state *ui) {
         LogInfo(
             "Added track %s to the queue : TITLE : %s ARTIST : %s ALBUM : %s",
             tmp.audio_file_path, tmp.title, tmp.artist, tmp.album);
+        LogFlush();
         ui->focus = FOCUS_NORMAL;
         Buttons[BUTTON_INDEX_ADD].mode = 0;
       } else if (strncmp(".srt", file_extension(name), 4) == 0) {
@@ -335,16 +352,27 @@ void ui_render(UI_state *ui) {
 
   // Main window
   if (ui->p_mode == PLAYER_PLAYING || ui->p_mode == PLAYER_PAUSED) {
-    move_cursor(3, 3, &ui->window);
-    write_str("Genre: ", &ui->window);
-    write_str(ui->current_track.genre, &ui->window);
+
+    if (ui->current_track.genre) {
+      move_cursor(3, 3, &ui->window);
+      write_str("Genre: ", &ui->window);
+      write_str(ui->current_track.genre, &ui->window);
+    }
 
     move_cursor(SCREEN_HEIGHT - 7, 3, &ui->window);
-    write_str(ui->current_track.title, &ui->window);
+    if (ui->current_track.title) {
+      write_str(ui->current_track.title, &ui->window);
+    } else {
+      const char *name = strrchr(ui->current_track.audio_file_path, '/');
+      name = name ? name + 1 : ui->current_track.audio_file_path;
+      write_str(name, &ui->window);
+    }
 
-    int colm = SCREEN_WIDTH / 2 - strlen(ui->current_track.artist) / 2;
-    move_cursor(SCREEN_HEIGHT - 7, colm, &ui->window);
-    write_str(ui->current_track.artist, &ui->window);
+    if (ui->current_track.artist) {
+      int colm = SCREEN_WIDTH / 2 - strlen(ui->current_track.artist) / 2;
+      move_cursor(SCREEN_HEIGHT - 7, colm, &ui->window);
+      write_str(ui->current_track.artist, &ui->window);
+    }
 
     int dur_sec = (int)decoder_duration(ui->decoder);
     int pos_sec = (int)decoder_position(ui->decoder);
@@ -387,6 +415,8 @@ void ui_render(UI_state *ui) {
     move_cursor(SCREEN_HEIGHT - 6, i, &ui->window);
     write_char(u'─', &ui->window);
   }
+
+  //
 
   // lower panel for buttons
   move_cursor(SCREEN_HEIGHT - 3, 0, &ui->window);

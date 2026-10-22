@@ -11,6 +11,8 @@
 
 // helper
 char *morph_dash(char *in) {
+  if (in == NULL)
+    return NULL;
   char *out = calloc(1 + strlen(in), sizeof(char));
   assert(out);
   char prev, curr = 0;
