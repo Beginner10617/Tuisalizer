@@ -385,3 +385,13 @@ static void ffmpeg_log_callback(void *avcl, int level, const char *fmt,
     LogDebug("[FFmpeg] %s", message);
   }
 }
+
+void set_volume(float *pcm, size_t num_samples, float volume) {
+  if (volume < 0.0f)
+    volume = 0.0f;
+  if (volume > 1.0f)
+    volume = 1.0f;
+
+  for (size_t i = 0; i < num_samples; i++)
+    pcm[i] *= volume;
+}

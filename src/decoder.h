@@ -20,4 +20,5 @@ double decoder_duration(const ffmpeg_decoder *);
 
 int decoder_sample_rate(ffmpeg_decoder *);
 int decoder_finished(ffmpeg_decoder *);
+void set_volume(float *pcm, size_t num_samples, float volume);
 #endif

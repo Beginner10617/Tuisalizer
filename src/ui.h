@@ -43,7 +43,8 @@ typedef struct {
   // music decoding
   ffmpeg_decoder *decoder;
   int decoder_change_flags; // MSB, ..., position changed ?, track changed ?
-  float *pcm_buf;
+  float *pcm_buf, volume;
+
   // sdl music backend
   SDL_AudioDeviceID device;
   SDL_AudioSpec spec;

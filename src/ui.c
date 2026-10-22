@@ -26,6 +26,7 @@
 #define BUTTON_INDEX_QUIT 5
 #define BUTTON_INDEX_QUEUE 6
 #define TIMELINE_SEEK_STEP 15 // in sec
+#define VOLUME_STEP 0.05
 
 // helper
 char *to_time_str(int sec);
@@ -104,6 +105,7 @@ int ui_init(UI_state *ui) {
   ui->p_mode = PLAYER_STOPPED;
   ui->loop = false;
   ui->decoder = decoder_create();
+  ui->volume = 1.0;
   ui->pcm_buf = malloc(sizeof(float) * 4096);
   if (!ui->pcm_buf) {
     LogError("Unable to allocate space for pcm_buf");
@@ -169,9 +171,11 @@ void ui_update(UI_state *ui) {
     if (ui->p_mode == PLAYER_PAUSED) {
       Buttons[BUTTON_INDEX_PAUSE_PLAY].mode = 0;
       ui->p_mode = PLAYER_PLAYING;
+      Buttons[BUTTON_INDEX_SEEK].mode = 0;
     } else if (ui->p_mode == PLAYER_PLAYING) {
       Buttons[BUTTON_INDEX_PAUSE_PLAY].mode = 1;
       ui->p_mode = PLAYER_PAUSED;
+      Buttons[BUTTON_INDEX_SEEK].mode = 1;
     }
   }
   if (ui->focus == FOCUS_NORMAL && ui->p_mode == PLAYER_PLAYING &&
@@ -185,6 +189,15 @@ void ui_update(UI_state *ui) {
       double dst =
           src + TIMELINE_SEEK_STEP < dur ? src + TIMELINE_SEEK_STEP : dur;
       decoder_seek(ui->decoder, dst);
+    }
+  }
+  if (ui->focus == FOCUS_NORMAL &&
+      (ui->inputs.pressed[TUIK_UP] ^ ui->inputs.pressed[TUIK_DOWN])) {
+    if (ui->inputs.pressed[TUIK_UP]) {
+      ui->volume =
+          (ui->volume + VOLUME_STEP <= 1.0) ? ui->volume + VOLUME_STEP : 1.0;
+    } else if (ui->inputs.pressed[TUIK_DOWN]) {
+      ui->volume = (ui->volume > VOLUME_STEP) ? ui->volume - VOLUME_STEP : 0.0;
     }
   }
 
@@ -294,10 +307,10 @@ void ui_update(UI_state *ui) {
         SDL_ClearQueuedAudio(ui->device);
       }
       if (size > 0) {
+        set_volume(ui->pcm_buf, size, ui->volume);
         if (SDL_QueueAudio(ui->device, ui->pcm_buf,
                            (Uint32)(size * sizeof(float)))) {
           LogError("SDL_QueueAudio: %s\n", SDL_GetError());
-          printf("ZERO SIZE, size = %zu\n", size);
         }
       } else
         LogError("Audio decoding failed");
@@ -352,6 +365,7 @@ void ui_render(UI_state *ui) {
   // Main window
   if (ui->p_mode == PLAYER_PLAYING || ui->p_mode == PLAYER_PAUSED) {
 
+    // metadata
     if (ui->current_track.genre) {
       move_cursor(3, 3, &ui->window);
       write_str("Genre: ", &ui->window);
@@ -373,6 +387,7 @@ void ui_render(UI_state *ui) {
       write_str(ui->current_track.artist, &ui->window);
     }
 
+    // timeline
     int dur_sec = (int)decoder_duration(ui->decoder);
     int pos_sec = (int)decoder_position(ui->decoder);
 
@@ -391,6 +406,20 @@ void ui_render(UI_state *ui) {
     int highlight_sz = tot_sz * pos_sec / dur_sec;
     for (int i = 0; i < tot_sz; i++) {
       move_cursor(SCREEN_HEIGHT - 9, 9 + i, &ui->window);
+      if (i == highlight_sz) {
+        write_char(u'●', &ui->window);
+        set_color_fg(GREY, &ui->window);
+      } else {
+        write_char(u'━', &ui->window);
+      }
+    }
+    set_color_fg(WHITE, &ui->window);
+
+    // volume
+    tot_sz = 20;
+    highlight_sz = 20 * ui->volume;
+    for (int i = 0; i <= tot_sz; i++) {
+      move_cursor(SCREEN_HEIGHT - 7, SCREEN_WIDTH - 24 + i, &ui->window);
       if (i == highlight_sz) {
         write_char(u'●', &ui->window);
         set_color_fg(GREY, &ui->window);
