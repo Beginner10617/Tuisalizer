@@ -61,4 +61,5 @@ void ui_update(UI_state *);
 void ui_render(UI_state *);
 void ui_close(UI_state *);
 void ui_render_button(button, UI_state *);
+void enque_from_plist(queue *m_que, const char *filepath);
 #endif

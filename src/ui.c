@@ -4,6 +4,7 @@
 #include "queue.h"
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #define TUI_IMPLEMENTATION
 #define SDL_QUEUE_GAP 16384
@@ -99,7 +100,10 @@ int ui_init(UI_state *ui) {
   ui->loop = false;
   ui->decoder = decoder_create();
   ui->pcm_buf = malloc(sizeof(float) * 4096);
-  assert(ui->pcm_buf);
+  if (!ui->pcm_buf) {
+    LogError("Unable to allocate space for pcm_buf");
+    return 1;
+  }
 
   ui->spec.freq = 48000;
   ui->spec.format = AUDIO_F32SYS;
@@ -215,6 +219,10 @@ void ui_update(UI_state *ui) {
         Buttons[BUTTON_INDEX_ADD].mode = 0;
       } else if (strncmp(".srt", file_extension(name), 4) == 0) {
       } else if (strncmp(".plist", file_extension(name), 6) == 0) {
+        char *path = fs_join_path(ui->file_sys.path, name);
+        enque_from_plist(&ui->music_queue, path);
+        ui->focus = FOCUS_NORMAL;
+        Buttons[BUTTON_INDEX_ADD].mode = 0;
       }
     }
   }
@@ -234,7 +242,7 @@ void ui_update(UI_state *ui) {
     ui->decoder_change_flags = 1;
   }
 
-  // TODO : music playing
+  // music playing
   if (ui->decoder_change_flags & 1) {
     ui->decoder_change_flags &= ~1;
 
@@ -474,4 +482,40 @@ void ui_render_button(button b, UI_state *ui) {
   set_color_bg(b.bgclr, &ui->window);
   set_color_fg(b.fgclr, &ui->window);
   write_str(b.texts[b.mode], &ui->window);
+}
+
+void enque_from_plist(queue *m_que, const char *filepath) {
+  FILE *file = fopen(filepath, "r");
+  if (!file) {
+    LogError("Unavle to open file %s", filepath);
+    return;
+  }
+  while (1) {
+    char c;
+    while (fscanf(file, "%c", &c) == 1) {
+      if (c == '[')
+        break;
+    }
+    if (c != '[')
+      break;
+    size_t sz = 0;
+    while (fscanf(file, "%c", &c) == 1) {
+      if (c == ']')
+        break;
+      sz++;
+    }
+    if (c != ']')
+      break;
+    char *music_path = calloc(sz + 1, sizeof(char));
+    assert(music_path);
+    fseek(file, -sz - 1, SEEK_CUR);
+    for (int i = 0; i < sz; i++)
+      fscanf(file, "%c", &music_path[i]);
+    fscanf(file, "%c", &c);
+    assert(c == ']');
+    track tmp;
+    load_track_metadata(music_path, &tmp);
+    queue_enque(m_que, &tmp);
+  }
+  fclose(file);
 }
