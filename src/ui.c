@@ -26,7 +26,8 @@
 #define BUTTON_INDEX_QUIT 5
 #define BUTTON_INDEX_QUEUE 6
 #define TIMELINE_SEEK_STEP 15 // in sec
-#define VOLUME_STEP 0.05
+#define VOLUME_DIVSIONS 20
+#define QUEUE_TRACK_DISPLAY_WIDTH 15
 
 // helper
 char *to_time_str(int sec);
@@ -111,6 +112,7 @@ int ui_init(UI_state *ui) {
     LogError("Unable to allocate space for pcm_buf");
     return 1;
   }
+  ui->current_queue_selection = 0;
 
   ui->spec.freq = 48000;
   ui->spec.format = AUDIO_F32SYS;
@@ -193,6 +195,7 @@ void ui_update(UI_state *ui) {
   }
   if (ui->focus == FOCUS_NORMAL &&
       (ui->inputs.pressed[TUIK_UP] ^ ui->inputs.pressed[TUIK_DOWN])) {
+    float VOLUME_STEP = 1.0 / VOLUME_DIVSIONS;
     if (ui->inputs.pressed[TUIK_UP]) {
       ui->volume =
           (ui->volume + VOLUME_STEP <= 1.0) ? ui->volume + VOLUME_STEP : 1.0;
@@ -416,8 +419,8 @@ void ui_render(UI_state *ui) {
     set_color_fg(WHITE, &ui->window);
 
     // volume
-    tot_sz = 20;
-    highlight_sz = 20 * ui->volume;
+    tot_sz = VOLUME_DIVSIONS;
+    highlight_sz = VOLUME_DIVSIONS * ui->volume;
     for (int i = 0; i <= tot_sz; i++) {
       move_cursor(SCREEN_HEIGHT - 7, SCREEN_WIDTH - 24 + i, &ui->window);
       if (i == highlight_sz) {
@@ -442,6 +445,31 @@ void ui_render(UI_state *ui) {
   for (int i = 1; i < SCREEN_WIDTH - 1; i++) {
     move_cursor(SCREEN_HEIGHT - 6, i, &ui->window);
     write_char(u'─', &ui->window);
+  }
+  size_t start = (ui->focus == FOCUS_QUEUE) ? ui->current_queue_selection : 0;
+  int colm = 3;
+  for (int i = start; i < ui->music_queue.size && colm < SCREEN_WIDTH - 3;
+       i++) {
+    track tck;
+    memcpy(&tck,
+           ui->music_queue.values +
+               (i + ui->music_queue.head) * ui->music_queue.elem_size,
+           ui->music_queue.elem_size);
+    const char *display_str;
+    if (tck.title) {
+      display_str = tck.title;
+    } else {
+      display_str = strrchr(ui->current_track.audio_file_path, '/');
+      display_str = display_str ? display_str + 1 : tck.audio_file_path;
+    }
+    int len = strlen(display_str);
+    int wrt_sz =
+        (len > QUEUE_TRACK_DISPLAY_WIDTH) ? QUEUE_TRACK_DISPLAY_WIDTH : len;
+    move_cursor(SCREEN_HEIGHT - 4, colm, &ui->window);
+    set_color_bg(NAVY, &ui->window);
+    write_str_prefix(display_str, wrt_sz, &ui->window);
+    set_color_bg(BLACK, &ui->window);
+    colm += wrt_sz + 1;
   }
 
   //

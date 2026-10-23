@@ -40,6 +40,9 @@ typedef struct {
   track current_track;
   bool loop;
 
+  // queue window
+  size_t current_queue_selection;
+
   // music decoding
   ffmpeg_decoder *decoder;
   int decoder_change_flags; // MSB, ..., position changed ?, track changed ?
