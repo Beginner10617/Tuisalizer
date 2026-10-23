@@ -221,6 +221,7 @@ void ui_update(UI_state *ui) {
   if (ui->inputs.pressed[TUIK_ESCAPE] && ui->focus != FOCUS_NORMAL) {
     LogInfo("switching to focus mode normal");
     ui->focus = FOCUS_NORMAL;
+    ui->current_queue_selection = 0;
     Buttons[ui->focus_button_id].mode = 0;
     ui->focus_button_id = -1;
   }
