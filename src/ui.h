@@ -38,7 +38,7 @@ typedef struct {
   queue music_queue;
   playback_mode p_mode;
   track current_track;
-  bool loop;
+  int loop_mode;
 
   // queue window
   size_t current_queue_selection;
@@ -54,7 +54,7 @@ typedef struct {
 } UI_state;
 
 typedef struct {
-  const char *texts[2];
+  const char *texts[3];
   int row, col, mode;
   bool highlighted;
   uint8_t bgclr, fgclr;

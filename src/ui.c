@@ -57,7 +57,7 @@ button Buttons[BUTTON_COUNT] = {
      TEAL,
      BLACK},
 
-    {{"[L] Loop", "[L] UnLoop"},
+    {{"[L] Loop one", "[L] Un-Loop", "[L] Loop all"},
      SCREEN_HEIGHT - 2,
      1 + LOWER_PANEL_BUTTON_WIDTH * 3 + LOWER_PANEL_BUTTON_OFFSET,
      0,
@@ -104,7 +104,7 @@ int ui_init(UI_state *ui) {
   queue_init(&ui->music_queue, sizeof(track));
 
   ui->p_mode = PLAYER_STOPPED;
-  ui->loop = false;
+  ui->loop_mode = false;
   ui->decoder = decoder_create();
   ui->volume = 1.0;
   ui->pcm_buf = malloc(sizeof(float) * 4096);
@@ -141,8 +141,8 @@ void ui_update(UI_state *ui) {
     switch (ui->inputs.c_data) {
     case 'l':
     case 'L':
-      ui->loop = !ui->loop;
-      Buttons[BUTTON_INDEX_LOOP].mode = ui->loop;
+      ui->loop_mode = (1 + ui->loop_mode) % 3;
+      Buttons[BUTTON_INDEX_LOOP].mode = ui->loop_mode;
       break;
     case 'i':
     case 'I':
@@ -203,8 +203,12 @@ void ui_update(UI_state *ui) {
   }
   if (ui->focus == FOCUS_QUEUE && ui->inputs.pressed[TUIK_ENTER] &&
       ui->music_queue.size) {
-    for (int i = 0; i < ui->current_queue_selection; i++)
-      queue_deque(&ui->music_queue, NULL);
+    track tmp;
+    for (int i = 0; i < ui->current_queue_selection; i++) {
+      queue_deque(&ui->music_queue, &tmp);
+      if (ui->loop_mode == 2)
+        queue_enque(&ui->music_queue, &tmp);
+    }
     ui->p_mode = PLAYER_STOPPED;
   }
   if (ui->focus == FOCUS_NORMAL &&
@@ -279,7 +283,7 @@ void ui_update(UI_state *ui) {
 
   // playback state
   if (ui->p_mode == PLAYER_FINISHED) {
-    if (ui->loop) {
+    if (ui->loop_mode == 0) {
       ui->p_mode = PLAYER_PLAYING;
       ui->decoder_change_flags = 1;
     } else {
@@ -288,6 +292,8 @@ void ui_update(UI_state *ui) {
   }
   if (ui->p_mode == PLAYER_STOPPED && ui->music_queue.size) {
     queue_deque(&ui->music_queue, &ui->current_track);
+    if (ui->loop_mode == 2)
+      queue_enque(&ui->music_queue, &ui->current_track);
     ui->p_mode = PLAYER_PLAYING;
     ui->decoder_change_flags = 1;
   }
