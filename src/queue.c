@@ -37,7 +37,9 @@ void queue_enque(queue *que, void *elem) {
 void queue_deque(queue *que, void *dst) {
   if (que->size == 0)
     return;
-  memcpy(dst, (char *)que->values + que->elem_size * que->head, que->elem_size);
+  if (dst)
+    memcpy(dst, (char *)que->values + que->elem_size * que->head,
+           que->elem_size);
   que->size--;
   que->head = (que->head + 1) % que->cap;
 }

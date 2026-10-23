@@ -193,6 +193,20 @@ void ui_update(UI_state *ui) {
       decoder_seek(ui->decoder, dst);
     }
   }
+  if (ui->focus == FOCUS_QUEUE &&
+      (ui->inputs.pressed[TUIK_LEFT] ^ ui->inputs.pressed[TUIK_RIGHT])) {
+    if (ui->inputs.pressed[TUIK_LEFT] && ui->current_queue_selection)
+      ui->current_queue_selection--;
+    else if (ui->inputs.pressed[TUIK_RIGHT] &&
+             ui->current_queue_selection + 1 < ui->music_queue.size)
+      ui->current_queue_selection++;
+  }
+  if (ui->focus == FOCUS_QUEUE && ui->inputs.pressed[TUIK_ENTER] &&
+      ui->music_queue.size) {
+    for (int i = 0; i < ui->current_queue_selection; i++)
+      queue_deque(&ui->music_queue, NULL);
+    ui->p_mode = PLAYER_STOPPED;
+  }
   if (ui->focus == FOCUS_NORMAL &&
       (ui->inputs.pressed[TUIK_UP] ^ ui->inputs.pressed[TUIK_DOWN])) {
     float VOLUME_STEP = 1.0 / VOLUME_DIVSIONS;
@@ -448,7 +462,7 @@ void ui_render(UI_state *ui) {
   }
   size_t start = (ui->focus == FOCUS_QUEUE) ? ui->current_queue_selection : 0;
   int colm = 3;
-  for (int i = start; i < ui->music_queue.size && colm < SCREEN_WIDTH - 3;
+  for (int i = start; i < ui->music_queue.size && colm < SCREEN_WIDTH - 1;
        i++) {
     track tck;
     memcpy(&tck,
@@ -465,8 +479,14 @@ void ui_render(UI_state *ui) {
     int len = strlen(display_str);
     int wrt_sz =
         (len > QUEUE_TRACK_DISPLAY_WIDTH) ? QUEUE_TRACK_DISPLAY_WIDTH : len;
+    if (wrt_sz + colm >= SCREEN_WIDTH)
+      wrt_sz = SCREEN_WIDTH - colm - 1;
     move_cursor(SCREEN_HEIGHT - 4, colm, &ui->window);
-    set_color_bg(NAVY, &ui->window);
+    if (ui->focus == FOCUS_QUEUE && i == ui->current_queue_selection)
+      set_color_bg(TEAL, &ui->window);
+    else
+      set_color_bg(NAVY, &ui->window);
+
     write_str_prefix(display_str, wrt_sz, &ui->window);
     set_color_bg(BLACK, &ui->window);
     colm += wrt_sz + 1;
