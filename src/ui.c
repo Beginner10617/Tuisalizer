@@ -478,7 +478,9 @@ void ui_render(UI_state *ui) {
     }
     int len = strlen(display_str);
     int wrt_sz =
-        (len > QUEUE_TRACK_DISPLAY_WIDTH) ? QUEUE_TRACK_DISPLAY_WIDTH : len;
+        (len > QUEUE_TRACK_DISPLAY_WIDTH && i != ui->current_queue_selection)
+            ? QUEUE_TRACK_DISPLAY_WIDTH
+            : len;
     if (wrt_sz + colm >= SCREEN_WIDTH)
       wrt_sz = SCREEN_WIDTH - colm - 1;
     move_cursor(SCREEN_HEIGHT - 4, colm, &ui->window);
