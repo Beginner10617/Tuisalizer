@@ -4,6 +4,12 @@ A terminal-based music player written in C, featuring audio playback, queue mana
 
 Tuisalizer combines SDL2 and FFmpeg for audio playback and decoding with a custom-built terminal UI library for rendering its interface.
 
+## DEMO
+
+<div align="center">
+<img src="demos/DEMO.gif" alt="bounce.c" width="400" height="250">
+</div>
+
 ## Features
 
 - **Audio playback** — Play and pause tracks, seek through songs, and adjust volume.

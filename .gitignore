@@ -67,3 +67,6 @@ todo
 *.mp3
 *.txt
 *.plist
+
+# mac
+.DS_Store
