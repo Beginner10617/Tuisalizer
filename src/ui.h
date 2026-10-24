@@ -6,6 +6,8 @@
 #include "music.h"
 #include "queue.h"
 #include <SDL.h>
+#include <complex.h>
+#include <stdint.h>
 enum { FOCUS_NORMAL, FOCUS_QUEUE, FOCUS_ADD, FOCUS_QUIT };
 typedef enum {
   PLAYER_STOPPED,
@@ -47,6 +49,12 @@ typedef struct {
   ffmpeg_decoder *decoder;
   int decoder_change_flags; // MSB, ..., position changed ?, track changed ?
   float *pcm_buf, volume;
+
+  // data for FFT
+  float *freq_bins;
+  size_t bins_count, bar_count;
+  int *bar_height, max_height;
+  uint8_t *bar_clr;
 
   // sdl music backend
   SDL_AudioDeviceID device;

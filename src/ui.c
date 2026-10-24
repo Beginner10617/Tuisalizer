@@ -1,4 +1,6 @@
 #include "decoder.h"
+#define FFT_IMPLEMENTATION
+#include "fft.h"
 #include "filesys.h"
 #include "music.h"
 #include "queue.h"
@@ -107,12 +109,46 @@ int ui_init(UI_state *ui) {
   ui->loop_mode = false;
   ui->decoder = decoder_create();
   ui->volume = 1.0;
-  ui->pcm_buf = malloc(sizeof(float) * 4096);
-  if (!ui->pcm_buf) {
-    LogError("Unable to allocate space for pcm_buf");
-    return 1;
-  }
   ui->current_queue_selection = 0;
+
+  ui->pcm_buf = malloc(sizeof(float) * 4096);
+  ui->bar_height = calloc(110, sizeof(int));
+  ui->bar_clr = malloc(110 * sizeof(uint8_t));
+  ui->bins_count = 4096;
+  ui->bar_count = 110;
+  ui->max_height = 34;
+  assert(ui->pcm_buf && ui->bar_height && ui->bar_clr);
+
+  // colors
+  const uint8_t colors[][3] = {
+      {255, 0, 0},   // Red
+      {255, 255, 0}, // Yellow
+      {0, 255, 0},   // Green
+      {0, 255, 255}, // Cyan
+      {0, 0, 255},   // Blue
+  };
+  const int segments = 4;
+  for (int i = 0; i < ui->bar_count; i++) {
+    float t = (float)i * segments / (ui->bar_count - 1);
+    int segment = (int)t;
+    float f = t - segment;
+
+    if (segment >= segments) {
+      segment = segments - 1;
+      f = 1.0f;
+    }
+
+    uint8_t r = (uint8_t)(colors[segment][0] * (1.0f - f) +
+                          colors[segment + 1][0] * f + 0.5f);
+
+    uint8_t g = (uint8_t)(colors[segment][1] * (1.0f - f) +
+                          colors[segment + 1][1] * f + 0.5f);
+
+    uint8_t b = (uint8_t)(colors[segment][2] * (1.0f - f) +
+                          colors[segment + 1][2] * f + 0.5f);
+
+    ui->bar_clr[i] = rgb_to_ansi(r, g, b);
+  }
 
   ui->spec.freq = 48000;
   ui->spec.format = AUDIO_F32SYS;
@@ -331,10 +367,35 @@ void ui_update(UI_state *ui) {
         SDL_ClearQueuedAudio(ui->device);
       }
       if (size > 0) {
+        LogDebug("PCM BUF size = %zu", size);
         set_volume(ui->pcm_buf, size, ui->volume);
         if (SDL_QueueAudio(ui->device, ui->pcm_buf,
                            (Uint32)(size * sizeof(float)))) {
           LogError("SDL_QueueAudio: %s\n", SDL_GetError());
+        }
+        // FFT
+        if (size == ui->bins_count) {
+          float complex *output = fft(ui->pcm_buf, ui->bins_count);
+          int usable_size = ui->bins_count / 2;
+          float max_mag = 500;
+          for (int i = 0; i < ui->bar_count; i++) {
+            float peak = 0;
+            int start = i * usable_size / ui->bar_count;
+            int end = (i + 1) * usable_size / ui->bar_count;
+            if (end > ui->bins_count)
+              end = ui->bins_count;
+            for (int j = start; j < end; j++) {
+              float mag = cabsf(output[j]);
+
+              if (mag > peak)
+                peak = mag;
+            }
+
+            ui->bar_height[i] = ui->max_height * sqrtf(peak / max_mag);
+            if (ui->bar_height[i] > ui->max_height)
+              ui->bar_height[i] = ui->max_height;
+          }
+          free(output);
         }
       } else
         LogError("Audio decoding failed");
@@ -452,6 +513,27 @@ void ui_render(UI_state *ui) {
       }
     }
     set_color_fg(WHITE, &ui->window);
+
+    // Visualization
+
+    for (int i = 1; i < ui->bar_count; i++) {
+      int colm = 2 + i;
+      int height = ui->bar_height[i];
+      set_color_fg(ui->bar_clr[i], &ui->window);
+      set_color_bg(ui->bar_clr[i], &ui->window);
+      for (int j = 0; j < height / 2; j++) {
+        move_cursor(SCREEN_HEIGHT - 10 - j, colm, &ui->window);
+        write_char(' ', &ui->window);
+      }
+      if (height % 2) {
+        set_color_bg(BLACK, &ui->window);
+        move_cursor(SCREEN_HEIGHT - 10 - height / 2, colm, &ui->window);
+        write_char(u'▄', &ui->window);
+      }
+    }
+
+    set_color_fg(WHITE, &ui->window);
+    set_color_bg(BLACK, &ui->window);
   }
   //
 
