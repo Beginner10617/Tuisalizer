@@ -214,13 +214,12 @@ void ui_update(UI_state *ui) {
     if (ui->p_mode == PLAYER_PAUSED) {
       Buttons[BUTTON_INDEX_PAUSE_PLAY].mode = 0;
       ui->p_mode = PLAYER_PLAYING;
-      Buttons[BUTTON_INDEX_SEEK].mode = 0;
     } else if (ui->p_mode == PLAYER_PLAYING) {
       Buttons[BUTTON_INDEX_PAUSE_PLAY].mode = 1;
       ui->p_mode = PLAYER_PAUSED;
-      Buttons[BUTTON_INDEX_SEEK].mode = 1;
     }
   }
+  Buttons[BUTTON_INDEX_SEEK].mode = (ui->p_mode == PLAYER_PLAYING) ? 0 : 1;
   if (ui->focus == FOCUS_NORMAL && ui->p_mode == PLAYER_PLAYING &&
       (ui->inputs.pressed[TUIK_LEFT] ^ ui->inputs.pressed[TUIK_RIGHT])) {
     double src = decoder_position(ui->decoder);
