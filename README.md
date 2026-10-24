@@ -94,6 +94,10 @@ The output filename follows the compiler's default unless explicitly configured 
 
 **Note:** The build script currently uses machine-specific library paths. You may need to adjust these paths and configure the `tui` library separately when building on another machine.
 
+## TODO
+
+- Add lyrics support.
+
 ## Project Goals
 
 Tuisalizer was built as a practical exploration of systems programming in C, audio processing, and real-time signal visualization. It brings these components together in an interactive music player that runs directly in the terminal.
