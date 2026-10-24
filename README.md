@@ -7,7 +7,7 @@ Tuisalizer combines SDL2 and FFmpeg for audio playback and decoding with a custo
 ## DEMO
 
 <div align="center">
-<img src="demos/DEMO.gif" alt="bounce.c" width="400" height="250">
+<img src="DEMO.gif" alt="bounce.c" width="400" height="250">
 </div>
 
 ## Features
