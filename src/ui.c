@@ -541,6 +541,11 @@ void ui_render(UI_state *ui) {
 
     set_color_fg(WHITE, &ui->window);
     set_color_bg(BLACK, &ui->window);
+  } else if (ui->focus == FOCUS_NORMAL) {
+    const char *message = "Click [A] to select files";
+    move_cursor(SCREEN_HEIGHT / 2 - 1, SCREEN_WIDTH / 2 - strlen(message) / 2,
+                &ui->window);
+    write_str(message, &ui->window);
   }
   //
 
