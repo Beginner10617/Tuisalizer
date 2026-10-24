@@ -436,7 +436,7 @@ void ui_render(UI_state *ui) {
     bg_clr = AQUA;
     break;
   }
-  move_cursor(1, SCREEN_WIDTH - strlen(mode_str) - 3, &ui->window);
+  move_cursor(1, SCREEN_WIDTH - utf8_strlen(mode_str) - 3, &ui->window);
   set_color_bg(bg_clr, &ui->window);
   set_color_fg(BLACK, &ui->window);
   write_str(mode_str, &ui->window);
@@ -472,7 +472,7 @@ void ui_render(UI_state *ui) {
     }
 
     if (ui->current_track.artist) {
-      int colm = SCREEN_WIDTH / 2 - strlen(ui->current_track.artist) / 2;
+      int colm = SCREEN_WIDTH / 2 - utf8_strlen(ui->current_track.artist) / 2;
       move_cursor(SCREEN_HEIGHT - 7, colm, &ui->window);
       write_str(ui->current_track.artist, &ui->window);
     }
@@ -570,7 +570,7 @@ void ui_render(UI_state *ui) {
       display_str = strrchr(ui->current_track.audio_file_path, '/');
       display_str = display_str ? display_str + 1 : tck.audio_file_path;
     }
-    int len = strlen(display_str);
+    int len = utf8_strlen(display_str);
     int wrt_sz =
         (len > QUEUE_TRACK_DISPLAY_WIDTH && i != ui->current_queue_selection)
             ? QUEUE_TRACK_DISPLAY_WIDTH
@@ -582,7 +582,6 @@ void ui_render(UI_state *ui) {
       set_color_bg(TEAL, &ui->window);
     else
       set_color_bg(NAVY, &ui->window);
-    LogDebug("%s size = %zu len = %zu", display_str, wrt_sz, len);
     write_str_prefix(display_str, wrt_sz, &ui->window);
     set_color_bg(BLACK, &ui->window);
     colm += wrt_sz + 1;
