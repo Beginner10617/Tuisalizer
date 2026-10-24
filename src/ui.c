@@ -384,7 +384,7 @@ void ui_update(UI_state *ui) {
         if (size == ui->bins_count && ui->visualizer_enabled) {
           float complex *output = fft(ui->pcm_buf, ui->bins_count);
           int usable_size = ui->bins_count / 2;
-          float max_mag = 500;
+          float max_mag = 100;
           for (int i = 0; i < ui->bar_count; i++) {
             float peak = 0;
             int start = i * usable_size / ui->bar_count;
