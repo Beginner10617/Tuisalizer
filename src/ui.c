@@ -373,7 +373,6 @@ void ui_update(UI_state *ui) {
         SDL_ClearQueuedAudio(ui->device);
       }
       if (size > 0) {
-        LogDebug("PCM BUF size = %zu", size);
         set_volume(ui->pcm_buf, size, ui->volume);
         if (SDL_QueueAudio(ui->device, ui->pcm_buf,
                            (Uint32)(size * sizeof(float)))) {
@@ -583,7 +582,7 @@ void ui_render(UI_state *ui) {
       set_color_bg(TEAL, &ui->window);
     else
       set_color_bg(NAVY, &ui->window);
-
+    LogDebug("%s size = %zu len = %zu", display_str, wrt_sz, len);
     write_str_prefix(display_str, wrt_sz, &ui->window);
     set_color_bg(BLACK, &ui->window);
     colm += wrt_sz + 1;
