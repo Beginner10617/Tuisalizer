@@ -251,6 +251,7 @@ void ui_update(UI_state *ui) {
         queue_enque(&ui->music_queue, &tmp);
     }
     ui->p_mode = PLAYER_STOPPED;
+    ui->current_queue_selection = 0;
   }
   if (ui->focus == FOCUS_NORMAL &&
       (ui->inputs.pressed[TUIK_UP] ^ ui->inputs.pressed[TUIK_DOWN])) {
