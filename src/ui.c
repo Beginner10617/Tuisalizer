@@ -97,6 +97,7 @@ int ui_init(UI_state *ui) {
   ui->window = createTermWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
   ui->fps = FPS;
   ui->running = true;
+  ui->visualizer_enabled = true;
 
   ui->search_buf[0] = 0;
   ui->search_buf_index = 0;
@@ -179,6 +180,10 @@ void ui_update(UI_state *ui) {
     case 'L':
       ui->loop_mode = (1 + ui->loop_mode) % 3;
       Buttons[BUTTON_INDEX_LOOP].mode = ui->loop_mode;
+      break;
+    case 'V':
+    case 'v':
+      ui->visualizer_enabled = !ui->visualizer_enabled;
       break;
     case 'i':
     case 'I':
@@ -374,7 +379,7 @@ void ui_update(UI_state *ui) {
           LogError("SDL_QueueAudio: %s\n", SDL_GetError());
         }
         // FFT
-        if (size == ui->bins_count) {
+        if (size == ui->bins_count && ui->visualizer_enabled) {
           float complex *output = fft(ui->pcm_buf, ui->bins_count);
           int usable_size = ui->bins_count / 2;
           float max_mag = 500;
@@ -516,7 +521,7 @@ void ui_render(UI_state *ui) {
 
     // Visualization
 
-    for (int i = 1; i < ui->bar_count; i++) {
+    for (int i = 1; i < ui->bar_count && ui->visualizer_enabled; i++) {
       int colm = 2 + i;
       int height = ui->bar_height[i];
       set_color_fg(ui->bar_clr[i], &ui->window);

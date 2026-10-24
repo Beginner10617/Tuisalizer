@@ -55,6 +55,7 @@ typedef struct {
   size_t bins_count, bar_count;
   int *bar_height, max_height;
   uint8_t *bar_clr;
+  bool visualizer_enabled;
 
   // sdl music backend
   SDL_AudioDeviceID device;
