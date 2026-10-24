@@ -92,7 +92,7 @@ Once compilation succeeds, run the resulting executable from the project directo
 
 The output filename follows the compiler's default unless explicitly configured in `build.sh`.
 
-**Note:** The build script currently uses machine-specific library paths. You may need to adjust these paths and configure the `tui` library separately when building on another machine.
+**Note:** The build script currently uses machine-specific library paths. You may need to adjust these paths and configure the libraries separately when building on another machine.
 
 ## TODO
 
