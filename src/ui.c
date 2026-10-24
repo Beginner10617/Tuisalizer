@@ -312,7 +312,6 @@ void ui_update(UI_state *ui) {
         LogFlush();
         ui->focus = FOCUS_NORMAL;
         Buttons[BUTTON_INDEX_ADD].mode = 0;
-      } else if (strncmp(".srt", file_extension(name), 4) == 0) {
       } else if (strncmp(".plist", file_extension(name), 6) == 0) {
         char *path = fs_join_path(ui->file_sys.path, name);
         enque_from_plist(&ui->music_queue, path);
@@ -644,7 +643,6 @@ void ui_render(UI_state *ui) {
         set_color_bg(BLACK, &ui->window);
       }
       if ((strncmp(tmp_c, ".mp3", 4) == 0) ||
-          (strncmp(tmp_c, ".srt", 4) == 0) ||
           (strncmp(tmp_c, ".plist", 6) == 0) ||
           (ui->file_sys.entries[i].kind == KIND_DIR)) {
         set_color_fg(WHITE, &ui->window);
