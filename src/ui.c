@@ -330,12 +330,14 @@ void ui_update(UI_state *ui) {
     } else {
       ui->p_mode = PLAYER_STOPPED;
     }
+    Buttons[BUTTON_INDEX_PAUSE_PLAY].mode = 0;
   }
   if (ui->p_mode == PLAYER_STOPPED && ui->music_queue.size) {
     queue_deque(&ui->music_queue, &ui->current_track);
     if (ui->loop_mode == 2)
       queue_enque(&ui->music_queue, &ui->current_track);
     ui->p_mode = PLAYER_PLAYING;
+    Buttons[BUTTON_INDEX_PAUSE_PLAY].mode = 0;
     ui->decoder_change_flags = 1;
   }
 
