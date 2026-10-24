@@ -251,6 +251,8 @@ void ui_update(UI_state *ui) {
     }
     ui->p_mode = PLAYER_STOPPED;
     ui->current_queue_selection = 0;
+    ui->focus = FOCUS_NORMAL;
+    Buttons[BUTTON_INDEX_QUEUE].mode = 0;
   }
   if (ui->focus == FOCUS_NORMAL &&
       (ui->inputs.pressed[TUIK_UP] ^ ui->inputs.pressed[TUIK_DOWN])) {
