@@ -1,0 +1,7 @@
+A Segmentation Fault.
+Repliction in local environment :
+1. Switch to loop all mode
+2. Open the playlist /Users/zain/plists/octavia_sperati.plist
+3. Go to queue and skip till Hunting Eye (6th track)
+4. Seek to end it
+5. On start of the next track, at around 00:01, the Segmentation fault occurs
