@@ -345,7 +345,6 @@ void ui_update(UI_state *ui) {
   // music playing
   if (ui->decoder_change_flags & 1) {
     ui->decoder_change_flags &= ~1;
-
     decoder_unload(ui->decoder);
     SDL_ClearQueuedAudio(ui->device);
 
@@ -568,7 +567,8 @@ void ui_render(UI_state *ui) {
     track tck;
     memcpy(&tck,
            ui->music_queue.values +
-               (i + ui->music_queue.head) * ui->music_queue.elem_size,
+               ((i + ui->music_queue.head) % ui->music_queue.cap) *
+                   ui->music_queue.elem_size,
            ui->music_queue.elem_size);
     const char *display_str;
     if (tck.title) {
